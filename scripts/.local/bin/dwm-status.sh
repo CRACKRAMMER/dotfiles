@@ -26,11 +26,11 @@ fi
 
 echo $flag$$ > $fifo &
 
-execute="/bin/bash $(dirname $0)/dwm-status-toggle.sh"
+execute="dwm-status-toggle.sh"
 
 if test $flag -eq 0
 then
-    execute="/bin/bash $(dirname $0)/dwm-status-refresh.sh; sleep 1"
+    execute="dwm-status-refresh.sh; sleep 1"
 fi
 
 while true

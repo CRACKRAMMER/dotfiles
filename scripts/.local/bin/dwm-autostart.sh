@@ -19,13 +19,13 @@ export XMODIFIERS="@im=fcitx"
 
 fcitx5 &
 
-/bin/bash tap-to-click.sh &
-/bin/bash inverse-scroll.sh &
-#/bin/bash setxmodmap-colemak.sh &
+#tap-to-click.sh &
+#inverse-scroll.sh &
+#setxmodmap-colemak.sh &
 nm-applet --no-agent &
 xfce4-power-manager --no-daemon &
 #xfce4-volumed-pulse &
-#/bin/bash run-mailsync.sh &
+#run-mailsync.sh &
 dwm-autostart-wait.sh &
 
 if test -e ~/.dwm-custom.sh; then
