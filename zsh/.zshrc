@@ -126,3 +126,14 @@ noproxy () {
   unset all_proxy
   echo "HTTP Proxy off"
 }
+
+switchGPU () {
+    if test $DRI_PRIME -eq 1 
+    then
+        export DRI_PRIME=0
+    else
+        export DRI_PRIME=1
+    fi
+    echo -n 'GPU:'
+    glxinfo | grep "OpenGL renderer" | cut -d':' -f2
+}

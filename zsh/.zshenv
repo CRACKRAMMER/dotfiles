@@ -5,6 +5,7 @@ export LANG=en_US.UTF-8
 export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 
 export MANGOHUD=1
+export DRI_PRIME=0
 
 export EDITOR=nvim
 export BROWSER=firefox
