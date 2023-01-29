@@ -7,5 +7,5 @@ then
     done
 fi
 
-feh --recursive --randomize --bg-fill ~/Wallpaper/Images/
+feh --recursive --randomize --bg-fill ~/Pictures/Wallpaper/Images/
 #feh --recursive --randomize --bg-fill ~/Pictures/wallpapers/view
