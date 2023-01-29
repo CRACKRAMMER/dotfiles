@@ -1,6 +1,6 @@
 #!/bin/bash
 
-fifo=/tmp/$(basename $0 | cut -d'.' f1)
+fifo=/tmp/$(basename $0 | cut -d'.' -f1)
 
 if test ! -e $fifo
 then
