@@ -50,8 +50,9 @@
 #waybar {
     color: white;
     background: #282c34;
+    opacity:0.95;
     font-family: FiraCode Nerd Font, Cantarell, Noto Sans, sans-serif;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 /* Each module */
