@@ -7,7 +7,7 @@ then
     shift
 fi
 
-cd $dirpath && find . -type l -delete || exit 1
+cd $dirpath && find . -maxdepth 1 -type l -delete || exit 1
 
 if test -n "$1"
 then
