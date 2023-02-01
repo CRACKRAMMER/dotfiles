@@ -1,7 +1,7 @@
 #/bin/bash
 
 dirpath=(~/Pictures/Wallpaper/Images/)
-if test $# -ne 1
+if test "$#" -eq 2
 then
     dirpath=$1
     shift
