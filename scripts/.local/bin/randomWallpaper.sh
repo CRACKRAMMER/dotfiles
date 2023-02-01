@@ -18,7 +18,7 @@ else
     do
         find -L ~/Pictures/Wallpaper/Images/ -maxdepth 1 -type f | sort -R | while read file;
         do
-            swww img "$file"
+            swww img "$file" || break
             sleep 10m
         done
     done
