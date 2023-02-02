@@ -3,7 +3,7 @@
 case "$XDG_SESSION_TYPE" in
     "wayland")
         comm=mpvpaper
-        comm_line= '-vs -o "no-audio loop" `hyprctl monitors | head -n1 | cut -d' ' -f2`'
+        comm_line='-vs -o "no-audio loop" `hyprctl monitors | head -n1 | cut -d" " -f2`'
         ;;
     "x11")
         comm=xwinwrap
