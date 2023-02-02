@@ -13,29 +13,30 @@ echo $process
 if test -n "$process"
 then
     kill `ps --ppid $process -o pid,ppid,comm | grep sleep | awk '{print $1}'`
-else
-    case "$XDG_SESSION_TYPE" in 
-        "wayland")
-            swww init
-            comm=swww
-            comm_line="img"
-            ;;
-        "x11")
-            comm=feh
-            comm_line="--recursive --randomize --bg-fill"
-            ;;
-        *)
-            exit 1
-    esac
-
-    while true;
-    do
-        files=`find -L ~/Pictures/Wallpaper/Images/ -maxdepth 1 -type f | sort -R | grep .`
-        [[ $? -ne 0 ]] && break
-        while read file 
-        do
-            eval $comm $comm_line "$file" || break
-            sleep 10m
-        done <<< $files
-    done
+    [[ $? -eq 0 ]] && exit
 fi
+
+case "$XDG_SESSION_TYPE" in 
+    "wayland")
+        swww init
+        comm=swww
+        comm_line="img"
+        ;;
+    "x11")
+        comm=feh
+        comm_line="--recursive --randomize --bg-fill"
+        ;;
+    *)
+        exit 1
+esac
+
+while true;
+do
+    files=`find -L ~/Pictures/Wallpaper/Images/ -maxdepth 1 -type f | sort -R | grep .`
+    [[ $? -ne 0 ]] && break
+    while read file 
+    do
+        eval $comm $comm_line "$file" || break
+        sleep 10m
+    done <<< $files
+done
