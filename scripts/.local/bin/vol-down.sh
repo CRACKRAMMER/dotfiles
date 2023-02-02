@@ -8,4 +8,4 @@ else
 fi
 #/usr/bin/amixer -qM set Master 5%- umute
 #pactl set-sink-volume @DEFAULT_SINK@ -5%
-dwm-status-refresh.sh
+#dwm-status-refresh.sh
