@@ -16,10 +16,12 @@ else
     swww init
     while true;
     do
-        find -L ~/Pictures/Wallpaper/Images/ -maxdepth 1 -type f | sort -R | while read file;
+        files=`find -L ~/Pictures/Wallpaper/Images/ -maxdepth 1 -type f | sort -R | grep .`
+        [[ $? -ne 0 ]] && break
+        while read file 
         do
             swww img "$file" || break
             sleep 10m
-        done
+        done <<< $files
     done
 fi
