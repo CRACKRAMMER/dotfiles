@@ -1,14 +1,29 @@
 #!/bin/bash
 
-# kill `ps aux | grep -v -e grep -e $$ | grep randomWallpaper.sh | awk '{print $2}' | xargs echo` 2> /dev/null
+case "$XDG_SESSION_TYPE" in
+    "wayland")
+        comm=mpvpaper
+        comm_line= '-vs -o "no-audio loop" `hyprctl monitors | head -n1 | cut -d' ' -f2`'
+        ;;
+    "x11")
+        comm=xwinwrap
+        comm_line='-fs -nf -ni -ov -- mpv -wid WID --loop --no-audio'
+        ;;
+    *)
+        exit 1
+esac
 
-killall mpvpaper
-mpvpaper -vs -o "no-audio loop" `hyprctl monitors | head -n1 | cut -d' ' -f2` "`ls -d ~/Pictures/Wallpaper/Videos/* | sort -R | head -n1`" &
+killall $comm
+[[ "$?" -eq 0 ]] && exit
 
-# sleep 1
-# kill `ps aux | grep -v -e grep -e $$ -e $! | grep -e randomVideoWallpaper.sh -e mpvpaper | awk '{print $2}' | xargs echo` 2> /dev/null
-#
-# while true;
-# do
-#     sleep 1h 
-# done
+codes="-name *.mp4 -o -name *.avi -o -name *.wmv -o -name *.mkv -o -name *.webm"
+
+while true
+do
+    files=`find -L ~/Pictures/Wallpaper/Videos -maxdepth 1 -type f $(echo $codes) | sort -R | grep .`
+    [[ $? -ne 0 ]] && break
+    while read file
+    do 
+        eval $comm $comm_line $file
+    done <<< $files
+done

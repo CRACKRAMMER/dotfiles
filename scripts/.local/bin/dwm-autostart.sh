@@ -1,7 +1,7 @@
 #!/bin/bash
 
 /bin/bash dwm-status.sh &
-/bin/bash wp-autochange.sh &
+/bin/bash randomWallpaper.sh &
 
 picom -o 0.95 -i 0.88 --detect-rounded-corners --vsync --blur-background-fixed -f -D 5 -c -b
 #picom -b
@@ -18,6 +18,7 @@ export QT_IM_MODULE="fcitx"
 export XMODIFIERS="@im=fcitx"
 
 fcitx5 &
+dunst &
 
 #tap-to-click.sh &
 #inverse-scroll.sh &
