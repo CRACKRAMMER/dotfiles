@@ -1,39 +1,20 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-# You can call this script like this:
-# $ ./volumeControl.sh up
-# $ ./volumeControl.sh down
-# $ ./volumeControl.sh mute
+volume=$(pamixer --get-volume)
+step=5
 
-# Script modified from these wonderful people:
-# https://github.com/dastorm/volume-notification-dunst/blob/master/volume.sh
-# https://gist.github.com/sebastiencs/5d7227f388d93374cebdf72e783fbd6a
-
-function get_volume {
-  pamixer --get-volume
-}
-
-function is_mute {
-    res=$(pamixer --get-mute)
-    $res
-}
-
-case $1 in
-  up)
-    # set the volume on (if it was muted)
-    pamixer -i 5
-    send_notification
-    ;;
-  down)
-    pamixer -d 5
-    send_notification
-    ;;
-  mute)
-    # toggle mute
-    if is_mute ; then
-        pamixer -u
-    else
-        pamixer -m
-    fi
-    ;;
+case "$1" in
+    "up")
+        value=$[volume-volume%step+step]
+        [[ $value -ge 100 ]] && pamixer --set-volume 100 || pamixer --set-volume $value
+        ;;
+    "down")
+        value=$[volume-volume%step-!(volume%step)*step]
+        [[ $value -le $step ]] && pamixer --set-volume $step || pamixer --set-volume $value
+        ;;
+    "toggle")
+        pamixer -t
+        ;;
+    *)
+        exit 1
 esac
