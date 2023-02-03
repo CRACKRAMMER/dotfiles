@@ -15,3 +15,5 @@ case "$1" in
     *)
         exit 1
 esac
+
+notify-send -- "brightness $(light -G | cut -d'.' -f1)"
