@@ -1,6 +1,7 @@
 #!/bin/bash
 
 file_name=`basename $0 | cut -d'.' -f1`
+step=5
 
 case "$XDG_SESSION_TYPE" in 
     "wayland")
@@ -21,11 +22,11 @@ then
 
     case "$comm" in 
         "position")
-            value=`seq 0 10 100 | xargs -I{} printf '{}%%\n' | eval $switch_driver | cut -d'%' -f1`
+            value=`seq 0 $step 100 | xargs -I{} printf '{}%%\n' | eval $switch_driver | cut -d'%' -f1`
             value=$(echo "scale=2;$(playerctl --player=$player_name metadata mpris:length)/100000000*$value" | bc)
             ;;
         "volume")
-            value=`seq 100 -10 0 | xargs -I{} printf '{}%%\n' | eval $switch_driver | cut -d'%' -f1`
+            value=`seq 0 $step 100 | xargs -I{} printf '{}%%\n' | eval $switch_driver | cut -d'%' -f1`
             value=$(echo "scale=2;$value/100" | bc)
             ;;
     esac
