@@ -4,7 +4,7 @@ file_name=`basename $0 | cut -d'.' -f1`
 
 case "$XDG_SESSION_TYPE" in 
     "wayland")
-        switch_driver="wofi -d -n --prompt $file_name"
+        switch_driver="wofi -W 500 -H 500 -d -n -i --prompt $file_name"
         ;;
     "x11")
         switch_driver="rofi -normal-window -dmenu -p $file_name"
@@ -35,3 +35,6 @@ then
         playerctl $comm $value --player="$player_name"
     fi
 fi
+
+notify-send -- "$player_name $comm $value"
+
