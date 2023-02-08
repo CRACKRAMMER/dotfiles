@@ -14,25 +14,24 @@ case "$XDG_SESSION_TYPE" in
         exit 1
 esac
 
-comm=`printf "play-pause\nplay\npause\nnext\nprevious\nposition\nvolume\n" | eval $switch_driver`
+player_name=`playerctl --list-all | eval $switch_driver`
 
-if test -n "$comm"
+if test -n "$player_name"
 then
-    player_name=`playerctl --list-all | eval $switch_driver`
-
-    case "$comm" in 
-        "position")
-            value=`seq 0 $step 100 | xargs -I{} printf '{}%%\n' | eval $switch_driver | cut -d'%' -f1`
-            value=$(echo "scale=2;$(playerctl --player=$player_name metadata mpris:length)/100000000*$value" | bc)
-            ;;
-        "volume")
-            value=`seq 0 $step 100 | xargs -I{} printf '{}%%\n' | eval $switch_driver | cut -d'%' -f1`
-            value=$(echo "scale=2;$value/100" | bc)
-            ;;
-    esac
-
-    if test -n "$player_name"
+    comm=`printf "play-pause\nplay\npause\nnext\nprevious\nposition\nvolume\n" | eval $switch_driver`
+    if test -n "$comm"
     then
+        case "$comm" in 
+            "position")
+                value=`seq 0 $step 100 | xargs -I{} printf '{}%%\n' | eval $switch_driver | cut -d'%' -f1`
+                value=$(echo "scale=2;$(playerctl --player=$player_name metadata mpris:length)/100000000*$value" | bc)
+                ;;
+            "volume")
+                value=`seq 0 $step 100 | xargs -I{} printf '{}%%\n' | eval $switch_driver | cut -d'%' -f1`
+                value=$(echo "scale=2;$value/100" | bc)
+                ;;
+        esac
+
         playerctl $comm $value --player="$player_name"
     fi
 fi

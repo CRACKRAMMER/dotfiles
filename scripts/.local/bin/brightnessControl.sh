@@ -11,8 +11,6 @@ case "$XDG_SESSION_TYPE" in
     "x11")
         switch_driver="rofi -normal-window -dmenu -p $file_name"
         ;;
-    *)
-        exit 1
 esac
 
 case "$1" in
@@ -25,8 +23,13 @@ case "$1" in
         [[ $value -le $step ]] && light -S $step || light -S $value
         ;;
     *)
-        value=`seq 0 $step 100 | xargs -I{} printf '{}%%\n' | eval $switch_driver | cut -d'%' -f1`
-        [[ -n $value ]] && light -S $value
+        if test -n "$switch_driver"
+        then
+            value=`seq 0 $step 100 | xargs -I{} printf '{}%%\n' | eval $switch_driver | cut -d'%' -f1`
+            [[ -n $value ]] && light -S $value
+        else
+            exit 1
+        fi
 esac
 
 notify-send -- "brightness $(light -G | cut -d'.' -f1)"

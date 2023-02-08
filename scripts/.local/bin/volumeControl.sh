@@ -11,8 +11,6 @@ case "$XDG_SESSION_TYPE" in
     "x11")
         switch_driver="rofi -normal-window -dmenu -p $file_name"
         ;;
-    *)
-        exit 1
 esac
 
 case "$1" in
@@ -28,8 +26,13 @@ case "$1" in
         pamixer -t
         ;;
     *)
-        value=`seq 0 $step 100 | xargs -I{} printf '{}%%\n' | eval $switch_driver | cut -d'%' -f1`
-        [[ -n $value ]] && pamixer --set-volume $value
+        if test -n "$switch_driver"
+        then
+            value=`seq 0 $step 100 | xargs -I{} printf '{}%%\n' | eval $switch_driver | cut -d'%' -f1`
+            [[ -n $value ]] && pamixer --set-volume $value
+        else
+            exit 1
+        fi
 esac
 
 notify-send -- "volume $(pamixer --get-volume)"
