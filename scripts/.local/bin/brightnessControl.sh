@@ -9,7 +9,7 @@ case "$XDG_SESSION_TYPE" in
         switch_driver="wofi -W 500 -H 500 -d -n -i --prompt $file_name"
         ;;
     "x11")
-        switch_driver="rofi -normal-window -dmenu -p $file_name"
+        switch_driver="rofi -dmenu -p $file_name"
         ;;
 esac
 
