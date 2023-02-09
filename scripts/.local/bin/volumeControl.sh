@@ -26,10 +26,24 @@ case "$1" in
         pamixer -t
         ;;
     *)
-        if test -n "$switch_driver"
+        comm=$(printf "switch\nvolume\n" | eval $switch_driver)
+        if test -n "$comm"
         then
-            value=`seq 0 $step 100 | xargs -I{} printf '{}%%\n' | eval $switch_driver | cut -d'%' -f1`
-            [[ -n $value ]] && pamixer --set-volume $value
+            case "$comm" in
+                "switch")
+                    sink_list=$(pactl list sinks | grep -e "Name" -e "Description" | cut -d':' -f2-)
+                    sink=$(printf "$sink_list" | sed -n 'n;p' | eval $switch_driver)
+                    if test -n "$sink"
+                    then
+                        pactl set-default-sink $(printf "$sink_list" | grep -B1 "$sink" | head -n1)
+                        notify-send -- "sink: $sink"
+                    fi
+                    ;;
+                "volume")
+                    value=`seq 0 $step 100 | xargs -I{} printf '{}%%\n' | eval $switch_driver | cut -d'%' -f1`
+                    [[ -n $value ]] && pamixer --set-volume $value
+                    ;;
+            esac
         else
             exit 1
         fi
