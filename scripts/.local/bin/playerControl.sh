@@ -17,7 +17,7 @@ esac
 player_list=`playerctl --list-all -s`
 if test -n "$player_list"
 then
-    player_name=`printf $player_list | eval $switch_driver`
+    player_name=`printf "$player_list" | eval $switch_driver`
 
     if test -n "$player_name"
     then
