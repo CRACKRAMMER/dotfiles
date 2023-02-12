@@ -2,8 +2,9 @@ configuration {
 	font: "FuraCode Nerd Font 16";
 	show-icons: true;
 	icon-theme: "Papirus";
-    combi-modi: "drun,run";
-    modi: "combi";
+    /* combi-modi: "drun,run"; */
+    /* modi: "combi"; */
 }
 
-@theme "slate"
+/* @theme "slate" */
+@theme "mine.rasi"
