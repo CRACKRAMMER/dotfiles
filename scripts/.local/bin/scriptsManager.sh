@@ -2,7 +2,7 @@
 
 file_name=$(basename $0 | cut -d'.' -f1)
 script_path=$(dirname $0)
-script_list=$(ls $script_path/*Control.sh)
+script_list=(volumeControl.sh brightnessControl.sh networkControl.sh playerControl.sh bluetoothControl.sh randomWallpaper.sh randomVideoWallpaper.sh steam-switch.sh)
 
 case "$XDG_SESSION_TYPE" in 
     "wayland")
@@ -15,5 +15,5 @@ case "$XDG_SESSION_TYPE" in
         exit 1
 esac
 
-comm=$(printf "$script_list" | xargs -I{} basename "{}" | eval $switch_driver)
+comm=$(sed 's/ /\n/g' <<< ${script_list[@]} | eval $switch_driver)
 eval $comm

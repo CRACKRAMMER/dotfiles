@@ -1,17 +1,38 @@
 #!/bin/zsh
-steam_user=$1
 
-if test `ps aux | grep steam.sh | wc -l` -gt 1
+file_name=$(basename $0 | cut -d'.' -f1)
+games_path=~/Games/SteamUser
+
+case "$XDG_SESSION_TYPE" in 
+    "wayland")
+        switch_driver="wofi -W 500 -H 500 -d -n -i --prompt $file_name"
+        ;;
+    "x11")
+        switch_driver="rofi -dmenu -p $file_name"
+        ;;
+    *)
+        exit 1
+esac
+
+if test -n "$1"
 then
-    echo "Please exit steam first"
-    exit 1
+    steam_user=$1
+else
+    steam_user=$(ls `echo $games_path` | eval $switch_driver)
 fi
 
-if test ! -d ~/Games/SteamUser/$steam_user/
+if test -z "$steam_user" -a ! -d "$games_path/$steam_user/"
 then
     echo "$steam_user not found"
     exit 1
 fi
+
+if test `ps aux | grep steam.sh | wc -l` -gt 1
+then
+    echo "Please exit steam first"
+    exit 2
+fi
+
 
 rm ~/.steam/bin32
 rm ~/.steam/bin64
