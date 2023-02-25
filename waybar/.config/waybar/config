@@ -78,7 +78,8 @@
 
     "cpu": {
         "interval": 5,
-        "format": " {usage}% ({load})", // Icon: microchip
+        /* "format": " {usage}% ({load})", // Icon: microchip */
+        "format": " {usage}%", // Icon: microchip
         "states": {
           "warning": 70,
           "critical": 90
@@ -96,7 +97,8 @@
 
     "network": {
         "interval": 5,
-        "format": "{ifname}: Up({bandwidthUpOctets}) Down({bandwidthDownOctets})",
+        /* "format": "{ifname}: Up({bandwidthUpOctets}) Down({bandwidthDownOctets})", */
+        "format": "Up({bandwidthUpOctets}) Down({bandwidthDownOctets})",
         /* "format-wifi": " {essid} ({signalStrength}%)", // Icon: wifi */
         /* "format-ethernet": "󰌘 {ifname}: Up({bandwidthUpOctets}) Down({bandwidthDownOctets})", // Icon: ethernet */
         "format-disconnected": "⚠ Disconnected",
