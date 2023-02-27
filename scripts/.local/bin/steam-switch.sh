@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 file_name=$(basename $0 | cut -d'.' -f1)
-games_path=~/Games/SteamUser
+games_path=(~/Games/SteamUser)
 
 case "$XDG_SESSION_TYPE" in 
     "wayland")
