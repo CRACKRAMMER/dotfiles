@@ -2,7 +2,7 @@
 
 file_name=$(basename $0 | cut -d'.' -f1)
 script_path=$(dirname $0)
-script_list=(volumeControl.sh brightnessControl.sh networkControl.sh playerControl.sh bluetoothControl.sh randomWallpaper.sh randomVideoWallpaper.sh steam-switch.sh)
+script_list=(volumeControl.sh brightnessControl.sh networkControl.sh playerControl.sh bluetoothControl.sh randomWallpaper.sh randomVideoWallpaper.sh linkWallpaper.sh steam-switch.sh)
 
 case "$XDG_SESSION_TYPE" in 
     "wayland")

@@ -1,7 +1,9 @@
 #/bin/bash
 
 file_name=$(basename $0 | cut -d'.' -f1)
-dirpath=(~/Pictures/Wallpaper/Images/)
+dirpath=~/Pictures/Wallpaper
+
+cd $dirpath
 
 case "$XDG_SESSION_TYPE" in 
     "wayland")
@@ -14,17 +16,30 @@ case "$XDG_SESSION_TYPE" in
         exit 1
 esac
 
-if test "$#" -eq 2
+if test "$#" -eq 0
 then
+    dirpath=$(ls * -d | eval $switch_driver)
+elif test "$#" -le 2
+then
+    dirpath=Images
+else
     dirpath=$1
     shift
 fi
 
-cd $dirpath && find . -maxdepth 1 -type l -delete || exit 1
+if test -n "$dirpath"
+then
+    cd $dirpath && find . -maxdepth 1 -type l -delete || exit 1
+else
+    exit 2
+fi
 
 if test -n "$1"
 then
-    [[ -e "$1" ]] && ln -sf $1/* . || exit 1
+    $dirpath=$1
+    shift
 else
-    find . -type f | xargs -I{} ln -sf {} . 
+    dirpath=$(find * -type d | eval $switch_driver)
 fi
+
+[[ -e "$dirpath" ]] && ln -sf $dirpath/* . || exit 1
