@@ -18,7 +18,7 @@ local lsp_flags = {
 require("nvim-lsp-installer").setup {}
 require('lspconfig')['ccls'].setup{
     on_attach = on_attach,
-    root_dir = require("lspconfig.util").root_pattern('Makefile', 'compile_commands.json', '.ccls', '.git'),
+    root_dir = require("lspconfig.util").root_pattern('Makefile', 'compile_commands.json', '.ccls', '.git', '.'),
     init_options = {
         index = {
             threads = 0,
