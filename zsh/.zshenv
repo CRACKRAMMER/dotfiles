@@ -8,7 +8,7 @@ export MANGOHUD=1
 export DRI_PRIME=0
 
 export EDITOR=nvim
-export BROWSER=firefox
+export BROWSER=google-chrome-stable
 
 export XDG_CONFIG_HOME=~/.config
 export XDG_DATA_HOME=~/.local/share
