@@ -137,3 +137,6 @@ switchGPU () {
     echo -n 'GPU:'
     glxinfo | grep "OpenGL renderer" | cut -d':' -f2
 }
+
+[[ $- != *i* ]] && return
+[[ -z "$TMUX" ]] && exec tmux
