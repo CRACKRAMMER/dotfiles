@@ -20,7 +20,7 @@ case "$XDG_SESSION_TYPE" in
     "wayland")
         swww init
         comm=swww
-        comm_line="img"
+        comm_line="img --transition-type any --transition-step 255"
         ;;
     "x11")
         comm=feh
