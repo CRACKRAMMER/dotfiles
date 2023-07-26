@@ -1,8 +1,7 @@
 PATH="$PATH:$HOME/.local/bin:/opt/jython/bin"
 
-# use bat as man pager
 export LANG=en_US.UTF-8
-export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+# export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 
 export MANGOHUD=1
 export DRI_PRIME=0
