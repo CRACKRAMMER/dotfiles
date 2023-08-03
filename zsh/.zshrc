@@ -128,6 +128,11 @@ noproxy () {
 }
 
 switchGPU () {
+    if test -z $DRI_PRIME
+    then
+        export DRI_PRIME=0
+    fi
+
     if test $DRI_PRIME -eq 1 
     then
         export DRI_PRIME=0
