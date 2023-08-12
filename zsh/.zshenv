@@ -4,7 +4,7 @@ export LANG=en_US.UTF-8
 # export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 
 # export DRI_PRIME=0
-export MANGOHUD=1
+# export MANGOHUD=1
 export WLR_NO_HARDWARE_CURSORS=1
 
 export EDITOR=nvim
