@@ -4,6 +4,7 @@ require("core.options")
 require("core.keymaps")
 
 -- 插件
+require("plugins.colors")
 require("plugins.lualine")
 require("plugins/nvim-tree")
 require("plugins/treesitter")
