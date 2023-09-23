@@ -2,6 +2,7 @@ ignore-empty-password
 clock
 indicator
 screenshots
+effect-greyscale
 effect-scale=0.4
 effect-vignette=0.2:0.5
 effect-blur=4x2

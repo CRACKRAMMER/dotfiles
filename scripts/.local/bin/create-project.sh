@@ -1,10 +1,10 @@
 ProjectName=$1
 mkdir $ProjectName && cd $ProjectName
-mkdir Header Source
-touch Header/$ProjectName.h Source/{$ProjectName.cpp,main.cpp}
+mkdir Include Source
+touch Include/$ProjectName.h Source/{$ProjectName.cpp,main.cpp}
 
 echo ''' CC = g++
-LIB = -I ./Header
+LIB = -I ./Include
 BUILD_DIR = Build
 OUTFILE = $(notdir $(shell pwd))
 
@@ -33,7 +33,7 @@ clean:
 	if [[ -e $(OUTFILE) ]]; then rm $(OUTFILE); fi
 ''' > Makefile
 
-cat << EOF > Header/$ProjectName.h
+cat << EOF > Include/$ProjectName.h
 #ifndef __`echo $ProjectName | tr a-z A-Z`_H__
 #define __`echo $ProjectName | tr a-z A-Z`_H__
 
