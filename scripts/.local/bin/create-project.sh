@@ -19,7 +19,7 @@ mk_dir:
 	if [[ ! -d $(BUILD_DIR) ]]; then mkdir $(BUILD_DIR); fi
 
 $(OUTFILE): $(OBJ)
-	$(CC) $^ -o $@ $(DEBUG)
+	$(CC) $^ -o $(BUILD_DIR)/$@ $(DEBUG)
 
 $(OBJ): $(BUILD_DIR)/%.o: Source/%.cpp
 	$(CC) -c $(LIB) $^ -o $@ $(DEBUG)
@@ -41,7 +41,7 @@ cat << EOF > Include/$ProjectName.h
 EOF
 
 cat << EOF > Source/main.cpp
-#include "$ProjectName.h"
+#include "../Include/$ProjectName.h"
 
 int main(int argc, char *argv[]) {
 
@@ -50,6 +50,6 @@ int main(int argc, char *argv[]) {
 EOF
 
 cat << EOF > Source/$ProjectName.cpp
-#include "$ProjectName.h"
+#include "../Include/$ProjectName.h"
 
 EOF

@@ -42,6 +42,9 @@ local plugins = {
   "akinsho/bufferline.nvim", -- buffer分割线
   "lewis6991/gitsigns.nvim", -- 左则git提示
 
+  "yegappan/taglist",
+
+
   {
     'nvim-telescope/telescope.nvim', tag = '0.1.1', -- 文件检索
     dependencies = { {'nvim-lua/plenary.nvim'} } -- requires要改为dependencies

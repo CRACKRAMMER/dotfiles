@@ -38,3 +38,4 @@ keymap.set("n", "<C-L>", ":bnext<CR>")
 keymap.set("n", "<C-H>", ":bprevious<CR>")
 
 keymap.set("n", "<leader>e", ":NvimTreeToggle<CR>")
+keymap.set("n","<leader>l", ":TlistToggle<CR>")
