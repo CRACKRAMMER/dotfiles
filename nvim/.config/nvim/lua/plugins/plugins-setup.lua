@@ -43,6 +43,7 @@ local plugins = {
   "lewis6991/gitsigns.nvim", -- 左则git提示
 
   "yegappan/taglist",
+  'simrat39/rust-tools.nvim',
 
 
   {
