@@ -1,4 +1,4 @@
-PATH="$PATH:$HOME/.local/bin:/opt/jython/bin"
+PATH="$PATH:$HOME/.local/bin"
 
 export LANG=en_US.UTF-8
 # export MANPAGER="sh -c 'col -bx | bat -l man -p'"
