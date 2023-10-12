@@ -12,7 +12,7 @@ export ZSH="/home/xiechengan/.oh-my-zsh"
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 # ZSH_THEME="robbyrussell"
-#ZSH_THEME="avit"
+# ZSH_THEME="avit"
 ZSH_THEME="ys"
 
 # Set list of themes to pick from when loading at random
@@ -105,6 +105,11 @@ source $ZSH/oh-my-zsh.sh
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 [[ -s /etc/profile.d/autojump.zsh ]] && source /etc/profile.d/autojump.zsh
+
+alias vi="nvim"
+alias grep="rg"
+alias neofetch="neofetch | lolcat"
+alias docker="podman"
 
 proxy () {
   export http_proxy=http://127.0.0.1:8888
