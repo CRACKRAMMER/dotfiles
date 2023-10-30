@@ -1,0 +1,9 @@
+[Unit]
+Description=macast Daemon
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/macast
+
+[Install]
+WantedBy=default.target

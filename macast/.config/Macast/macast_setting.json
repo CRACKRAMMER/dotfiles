@@ -1,0 +1,17 @@
+{
+    "Additional_Interfaces": [],
+    "ApplicationPort": 47719,
+    "Blocked_Interfaces": [],
+    "CheckUpdate": 1,
+    "DLNA_FriendlyName": "Macast(xiechengan-notebook)",
+    "Macast_Protocol": "DLNA Protocol",
+    "Macast_Renderer": "MPV Renderer",
+    "MenubarIcon": 0,
+    "PlayerDefaultVolume": 100,
+    "PlayerHW": 1,
+    "PlayerOntop": 1,
+    "PlayerPosition": 4,
+    "PlayerSize": 3,
+    "StartAtLogin": 0,
+    "USN": "c3c47004-bd5e-4f4d-b680-e2fcdb9eaa6b"
+}

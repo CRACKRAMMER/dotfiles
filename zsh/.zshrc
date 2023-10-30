@@ -110,9 +110,10 @@ alias vi="nvim"
 alias grep="rg"
 alias neofetch="neofetch | lolcat"
 alias docker="podman"
+alias wine="env LANG=zh_CN.UTF-8 wine"
 
 proxy () {
-  export http_proxy=http://127.0.0.1:8888
+  export http_proxy=http://127.0.0.1:8889
   export https_proxy=$http_proxy
   if [[ $1 = "socks" ]]
   then
@@ -130,17 +131,22 @@ noproxy () {
   echo "HTTP Proxy off"
 }
 
-switchGPU () {
-    if test -z $DRI_PRIME
+lang () {
+    if [[ $LANG =~ '^en_US' ]] 
     then
-        export DRI_PRIME=0
-    fi
-
-    if test $DRI_PRIME -eq 1 
-    then
-        export DRI_PRIME=0
+        export LANG=zh_CN.UTF-8
     else
+        export LANG=en_US.UTF-8
+    fi
+    echo $LANG
+}
+
+switchGPU () {
+    if test -z $DRI_PRIME -o $DRI_PRIME -eq 0 
+    then
         export DRI_PRIME=1
+    else
+        export DRI_PRIME=0
     fi
     echo -n 'GPU:'
     glxinfo | grep "OpenGL renderer" | cut -d':' -f2
