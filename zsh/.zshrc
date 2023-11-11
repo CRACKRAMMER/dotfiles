@@ -107,7 +107,6 @@ source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 [[ -s /etc/profile.d/autojump.zsh ]] && source /etc/profile.d/autojump.zsh
 
 alias vi="nvim"
-alias grep="rg"
 alias neofetch="neofetch | lolcat"
 alias docker="podman"
 alias wine="env LANG=zh_CN.UTF-8 wine"
@@ -145,8 +144,10 @@ switchGPU () {
     if test -z $DRI_PRIME -o $DRI_PRIME -eq 0 
     then
         export DRI_PRIME=1
+        export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.i686.json:/usr/share/vulkan/icd.d/radeon_icd.x86_64.json
     else
-        export DRI_PRIME=0
+        unset DRI_PRIME
+        unset VK_ICD_FILENAMES
     fi
     echo -n 'GPU:'
     glxinfo | grep "OpenGL renderer" | cut -d':' -f2
