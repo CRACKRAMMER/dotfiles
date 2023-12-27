@@ -20,7 +20,7 @@ local plugins = {
 
   "christoomey/vim-tmux-navigator", -- 用ctl-hjkl来定位窗口
   "nvim-treesitter/nvim-treesitter", -- 语法高亮
---  "p00f/nvim-ts-rainbow", -- 配合treesitter，不同括号颜色区分
+  --"p00f/nvim-ts-rainbow", -- 配合treesitter，不同括号颜色区分
 
   {
     "williamboman/mason.nvim",
@@ -44,11 +44,30 @@ local plugins = {
 
   "yegappan/taglist",
   'simrat39/rust-tools.nvim',
-
+  'tpope/vim-surround',
+  'tpope/vim-repeat',
+  {
+    "iamcco/markdown-preview.nvim",
+    cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+    build = "cd app && yarn install",
+    init = function()
+      vim.g.mkdp_filetypes = { "markdown" }
+    end,
+    ft = { "markdown" },
+  },
 
   {
-    'nvim-telescope/telescope.nvim', tag = '0.1.1', -- 文件检索
+    'nvim-telescope/telescope.nvim', tag = '0.1.5', -- 文件检索
     dependencies = { {'nvim-lua/plenary.nvim'} } -- requires要改为dependencies
+  },
+  -- Lua
+  {
+    "folke/zen-mode.nvim",
+    opts = {
+      -- your configuration comes here
+      -- or leave it empty to use the default settings
+      -- refer to the configuration section below
+    }
   },
 
 }

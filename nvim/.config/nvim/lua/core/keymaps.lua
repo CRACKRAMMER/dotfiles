@@ -24,8 +24,8 @@ keymap.set("n","<leader>t",":split<Return>:terminal<Return>:resize 15<Return>",{
 keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
-keymap.set("n", "<leader>sv", "<C-w>v")
-keymap.set("n", "<leader>sh", "<C-w>s")
+keymap.set("n", "<leader>v", "<C-w>v")
+keymap.set("n", "<leader>h", "<C-w>s")
 keymap.set("n","<leader>sh","<C-w>h")
 keymap.set("n","<leader>sj","<C-w>j")
 keymap.set("n","<leader>sk","<C-w>k")
@@ -34,6 +34,7 @@ keymap.set("n","<leader>sl","<C-w>l")
 keymap.set("n", "<leader>nh", ":nohl<CR>")
 
 keymap.set("n", "<C-Q>", ":bdelete<CR>")
+keymap.set("n", "<leader>o", ":let currentbuf=bufnr()|bufdo if currentbuf != bufnr()|bd|endif<Return>", {silent = true})
 keymap.set("n", "<C-L>", ":bnext<CR>")
 keymap.set("n", "<C-H>", ":bprevious<CR>")
 

@@ -1,5 +1,21 @@
 local opt = vim.opt
 
+local indentfiletype = {"typescript", "typescriptreact", "rust", "lua", "json", "css", "scss"}
+local function setup_typescript_indent()
+  local ft = vim.bo.filetype
+  for _, v in ipairs(indentfiletype)
+    do
+    if ft == v then
+      vim.opt.shiftwidth = 2
+      vim.opt.softtabstop = 2
+      return
+    end
+  end
+end
+vim.api.nvim_create_autocmd("BufRead", {
+  callback = setup_typescript_indent,
+})
+
 opt.relativenumber = true
 opt.number = true
 
@@ -12,7 +28,7 @@ opt.tabstop = 4
 opt.softtabstop = 4
 opt.shiftwidth = 4
 opt.expandtab = true
-opt.autoindent = true
+opt.smartindent = true
 
 opt.wrap = false
 

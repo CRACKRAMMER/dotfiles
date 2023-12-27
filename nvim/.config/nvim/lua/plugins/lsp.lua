@@ -13,23 +13,34 @@ require("mason-lspconfig").setup({
     "clangd",
     "lua_ls",
     "pyright",
+    "cssls",
+    "emmet_ls",
+    "html",
+    "rust_analyzer",
+    "tsserver",
   },
 })
 
+local capabilities = require('cmp_nvim_lsp').default_capabilities()
+
 require("mason-lspconfig").setup_handlers {
     function (server_name) -- default handler (optional)
-        require("lspconfig")[server_name].setup {}
+      require("lspconfig")[server_name].setup {
+        capabilities = capabilities,
+      }
     end,
     ["rust_analyzer"] = function ()
         require("rust-tools").setup {}
-    end
+    end,
 }
 
-local capabilities = require('cmp_nvim_lsp').default_capabilities()
-
-require("lspconfig").lua_ls.setup {
-  capabilities = capabilities,
-}
+-- require("lspconfig").lua_ls.setup {
+--   capabilities = capabilities,
+-- }
+--
+-- require("lspconfig").cssls.setup {
+--   capabilities = capabilities,
+-- }
 
 vim.keymap.set('n', 'go', vim.diagnostic.open_float)
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
