@@ -5,7 +5,8 @@ export LANG=en_US.UTF-8
 
 # export DRI_PRIME=0
 # export MANGOHUD=1
-export WLR_NO_HARDWARE_CURSORS=1
+# export WLR_NO_HARDWARE_CURSORS=1
+# export GDK_SCALE=2
 
 export EDITOR=nvim
 export BROWSER=google-chrome-stable
