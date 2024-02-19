@@ -43,6 +43,7 @@ local plugins = {
   "lewis6991/gitsigns.nvim", -- 左则git提示
   "h-hg/fcitx.nvim",
 
+  "ap/vim-css-color",
   "yegappan/taglist",
   'simrat39/rust-tools.nvim',
   'tpope/vim-surround',
