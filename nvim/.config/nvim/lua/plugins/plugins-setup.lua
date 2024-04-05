@@ -20,7 +20,6 @@ local plugins = {
 
   "christoomey/vim-tmux-navigator", -- 用ctl-hjkl来定位窗口
   "nvim-treesitter/nvim-treesitter", -- 语法高亮
-  --"p00f/nvim-ts-rainbow", -- 配合treesitter，不同括号颜色区分
 
   {
     "williamboman/mason.nvim",
