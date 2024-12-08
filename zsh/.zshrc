@@ -115,6 +115,7 @@ source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
 [[ -s /etc/profile.d/autojump.zsh ]] && source /etc/profile.d/autojump.zsh
 
 alias vi="nvim"
+alias xvlc="vlc -V x11"
 alias neofetch="neofetch | lolcat"
 alias docker="podman"
 alias wine="env LANG=zh_CN.UTF-8 wine"
