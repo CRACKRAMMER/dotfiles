@@ -1,6 +1,6 @@
 local opt = vim.opt
 
-local indentfiletype = {"typescript", "typescriptreact", "rust", "lua", "json", "css", "scss"}
+local indentfiletype = {"typescript", "typescriptreact", "rust", "lua", "json", "css", "scss", "vue"}
 local function setup_typescript_indent()
   local ft = vim.bo.filetype
   for _, v in ipairs(indentfiletype)
