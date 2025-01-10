@@ -19,7 +19,7 @@ keymap.set("n","<up>","<C-w>+")
 keymap.set("n","<down>","<C-w>-")
 
 keymap.set("t","<ESC>","<C-\\><C-n>");
-keymap.set("n","<leader>t",":split<Return>:terminal<Return>:resize 15<Return>",{silent = true});
+keymap.set("n","<leader>t",":vsplit<Return>:terminal<Return>:vertical resize 40<Return>",{silent = true});
 
 keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 keymap.set("v", "K", ":m '<-2<CR>gv=gv")

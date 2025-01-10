@@ -19,7 +19,7 @@
     "modules-center": [
     ],
     "modules-right": [
-        "network",
+        //"network",
         "cpu",
         "memory",
         "disk",
@@ -27,7 +27,7 @@
         "pulseaudio",
         "battery",
         /* "clock", */
-        "clock#date",
+        //"clock#date",
         "clock#time",
         "tray",
     ],
