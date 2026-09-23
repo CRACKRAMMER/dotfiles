@@ -1,26 +1,17 @@
-# A TOML linter such as https://taplo.tamasfe.dev/ can use this schema to validate your config.
-# If you encounter any issues, please make an issue at https://github.com/yazi-rs/schemas.
-"$schema" = "https://yazi-rs.github.io/schemas/theme.json"
+[mgr]
+border_symbol = "│"
+border_style = { fg = "#3b4261" }
 
-# vim:fileencoding=utf-8:foldmethod=marker
+[tabs]
+active = { fg = "#1e2030", bg = "#82aaff", bold = true }
+inactive = { fg = "#828bb8", bg = "#1e2030" }
 
-[flavor]
-use = ""
+[mode]
+normal_main = { fg = "#1e2030", bg = "#82aaff", bold = true }
+select_main = { fg = "#1e2030", bg = "#c3e88d", bold = true }
+unset_main = { fg = "#1e2030", bg = "#ffc777", bold = true }
 
-
-[manager]
-
-# Tab
-tab_width = 12
-
-# Border
-border_symbol = " "
-border_style  = { fg = "gray" }
-
-# Highlighting
-syntect_theme = ""
-
-[status]
-mode_normal = { bg = "blue", bold = true }
-mode_select = { bg = "red", bold = true }
-mode_unset  = { bg = "yellow", bold = true }
+[git]
+unstaged = { fg = "#ffc777" }
+staged = { fg = "#c3e88d" }
+untracked = { fg = "#fca7ea" }

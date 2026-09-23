@@ -1,52 +1,59 @@
 # Dotfiles
 
-Configuration for Arch Linux and macOS. The shared packages are `nvim`, `tmux`, and `zsh`; desktop packages such as `hyprland` and `waybar` are Linux-specific.
+[简体中文](README.zh-CN.md)
 
-## Shared setup
+Personal configuration for Arch Linux and macOS, managed with [GNU Stow](https://www.gnu.org/software/stow/). Each top-level directory is a Stow package. Install only the packages for applications you use.
 
-Install the tools used by the shared configuration. This setup was tested with Neovim 0.12; use 0.12 or newer. The Tree-sitter parser installer also needs a C compiler and the `tree-sitter` CLI. On macOS, install the Xcode Command Line Tools for the compiler.
+## Install
+
+Clone this repository into `~/.dotfiles`. Install Stow and the applications you want to configure. For the shared terminal setup:
 
 ```sh
 # Arch Linux
-sudo pacman -S --needed git stow zsh neovim tmux ripgrep fzf tree-sitter-cli nodejs npm base-devel zoxide fastfetch zsh-autosuggestions zsh-syntax-highlighting
+sudo pacman -S --needed git stow zsh neovim tmux ripgrep fzf tree-sitter-cli nodejs npm base-devel zoxide fastfetch aria2 yazi bottom lazygit mpv
 
-# macOS, with Homebrew already installed and in PATH
+# macOS with Homebrew
 ./scripts/.local/scripts/install-brew-packages.sh
 ```
 
-From the repository directory, preview the links before creating them:
+The Homebrew script installs the shared command-line tools; install GUI applications such as VLC, Zed, and Sunshine separately if you use them. On Arch, install these from pacman or your trusted AUR source as appropriate. Neovim currently targets version 0.12 or newer. A C compiler and `tree-sitter` CLI are required to install parsers.
+
+Preview links before applying them. Move an existing regular file out of the way if Stow reports a conflict; review its contents before replacing it.
 
 ```sh
-stow -n -v -t "$HOME" nvim tmux
-stow -v -t "$HOME" nvim tmux
+cd ~/.dotfiles
+stow -n -v -t "$HOME" zsh nvim tmux yazi bottom lazygit mpv zed aria2
+stow -v -t "$HOME" zsh nvim tmux yazi bottom lazygit mpv zed aria2
 ```
 
-The `zsh` package is optional: preview it separately with `stow -n -v -t "$HOME" zsh` because many machines already have a `.zshrc`. Review and move any existing files that Stow reports as conflicts. The Zsh configuration respects existing `BROWSER`, `EDITOR`, XDG, and Go path settings. Put machine-specific interactive settings in `zsh/.config/zsh/local.zsh`; it is loaded by `.zshrc` and ignored by Git. Link Linux desktop packages separately on Arch, according to the applications installed on that machine.
-If Anaconda is installed by the AUR package at `/opt/anaconda` or Homebrew's cask at its default `anaconda3` path, interactive Zsh initializes Conda automatically. It skips this step when Conda is already initialized.
+Install desktop-specific packages separately. `sunshine`, `vlc`, `hyprland`, `waybar`, `mangohud`, `systemd`, and Steam-related packages are not part of the shared command above. Sunshine and VLC write runtime files in their configuration directories, so use `--no-folding` to keep those files outside this checkout:
 
-## Neovim
+```sh
+stow -n -v --no-folding -t "$HOME" sunshine vlc
+stow -v --no-folding -t "$HOME" sunshine vlc
+```
 
-On first start, `lazy.nvim` installs plugins and Mason installs the configured language servers. Both steps need network access. Run `:DotfilesTSInstall` once to install the configured Tree-sitter parsers; reopen any already open buffer to enable highlighting. After plugin updates, run `:TSUpdate`.
+The checked-in Sunshine config is for this Arch/KWin host. On macOS, adapt `capture` and `encoder` to the host before using it. A running Sunshine installation already has regular `sunshine.conf` and `apps.json` files; back them up before linking, and keep `sunshine_state.json` and `credentials/` in the host's configuration directory. Never commit pairing state, private keys, logs, backups, or VLC's recent-media UI state. `csrf_allowed_origins` should only be set locally if a particular host needs it.
 
-`lazy-lock.json` is tracked for matching plugin revisions across machines. Lazy may replace it during the first installation. On a fresh machine, restore that file from Git after the first install, then run `:Lazy restore`. Update the lockfile intentionally with `:Lazy update`.
+Some GUI applications use platform-specific configuration locations. Lazygit can use `$XDG_CONFIG_HOME/lazygit/config.yml`; its macOS fallback is `~/Library/Application Support/lazygit/config.yml`. VLC uses a different preferences location on macOS. Check the application's actual config path before linking its Stow package there.
 
-Telescope's text search needs `rg`. Markdown preview uses `npm` to install its local dependencies. The Fcitx plugin loads only when `fcitx-remote` or `fcitx5-remote` is available. System clipboard integration uses `pbcopy` on macOS and a Wayland or X11 clipboard tool on Linux.
+## Terminal and editor
 
-For settings specific to one machine, create `nvim/.config/nvim/lua/local.lua` in this checkout. It is loaded last and ignored by Git.
+- **Zsh:** The interactive shell starts tmux when available; set `DOTFILES_NO_TMUX=1` to opt out. Oh My Zsh's fzf integration provides `Ctrl-T`, `Ctrl-R`, and `Alt-C`. With fzf-tab, pressing `Tab` opens an fzf completion picker when candidates are available. `z` and `zi` use zoxide when installed. Anaconda initializes only when found at the standard AUR or Homebrew path. Put host-specific settings in `zsh/.config/zsh/local.zsh` (ignored by Git).
+- **tmux:** `Ctrl-h/j/k/l` moves between tmux panes and Neovim splits. `Alt-w` opens an fzf pane picker. Copy mode `v` selects and `y` copies through an available system clipboard tool. The status bar shows `YYYY-MM-DD HH:MM`. Put host-specific settings in `tmux/.config/tmux/local.conf`.
+- **Neovim:** `lazy.nvim` and Mason fetch plugins and language servers on first use. Run `:DotfilesTSInstall` for Tree-sitter parsers; use `:TSUpdate` after upgrades. `lazy-lock.json` pins plugin versions. The UI uses Tokyo Night Moon; a Nerd Font improves icon rendering. Put local settings in `nvim/.config/nvim/lua/local.lua`.
+- **Yazi:** This configuration uses the current `[mgr]` schema and four plugins: Git status, smart-enter, yamb bookmarks, and compress. Install/update the pinned plugins with `ya pkg install` after linking. `l`/`Enter` opens a file or enters a directory; `'a` adds a bookmark, `''` searches bookmarks with fzf, and `ca` creates an archive. mpv opens audio and video. Bookmark state is ignored by Git. The plugin lock file targets Yazi 26.9; update Yazi and plugins together when changing major versions.
 
-The UI uses Tokyo Night Moon with a solid editor background, a rounded float border, a shared status line, and slanted buffer tabs. Kitty, Foot, and WezTerm use matching colors. Their font sizes remain independent; install FiraCode Nerd Font on any machine where you want the icons and separators to render correctly.
+## Other applications
 
-## tmux
+| Package | Scope | Notes |
+| --- | --- | --- |
+| `aria2` | Arch, macOS | RPC binds to localhost. Downloads go to `~/Downloads`; create `~/.config/aria2/aria2.session` for direct starts. The Arch user service creates it automatically. Keep RPC secrets local. |
+| `bottom` | Arch, macOS | Nord theme, one-second refresh, full process commands. |
+| `lazygit` | Arch, macOS | Uses Neovim as its editor. |
+| `mpv` | Arch, macOS | Saves playback position; fuzzy subtitle matching. Hardware decoding stays at mpv's default. |
+| `zed` | Arch, macOS | System light/dark theme, autosave on focus change, format on save. |
+| `vlc` | Primarily Arch | Minimal privacy settings; no generated playback history or UI state. |
+| `sunshine` | Arch/KWin profile | Desktop and Steam Big Picture apps. The fixed `HDMI-1`/`xrandr` mode switch was removed because it is host-specific. |
 
-`Ctrl-h/j/k/l` moves between tmux panes and Neovim splits. `Alt-w` opens the fzf pane picker. In copy mode, `v` starts selection and `y` copies to the system clipboard using `pbcopy`, `wl-copy`, `xclip`, or `xsel`, whichever is available.
-
-The default status line uses tmux built-ins. The bundled `tmux-powerline` scripts remain available for manual use, but their network and platform-specific segments are not run by default. Put machine-specific tmux settings in `tmux/.config/tmux/local.conf`; it is sourced last and ignored by Git.
-
-Interactive Zsh starts tmux when available. Set `DOTFILES_NO_TMUX=1` before starting Zsh to disable that behavior on a particular machine or terminal. Zsh enables the Oh My Zsh `fzf` plugin when installed, or loads fzf's own shell integration if Oh My Zsh is unavailable. This adds `Ctrl-T`, `Ctrl-R`, and `Alt-C`. Pressing `Tab` opens fzf-tab's completion picker when there are multiple candidates; no `**` prefix is needed. `fetch` runs Fastfetch, and `z`/`zi` use zoxide when installed (falling back to autojump if zoxide is absent). The vendored fzf-tab source is from [Aloxaf/fzf-tab](https://github.com/Aloxaf/fzf-tab) commit `24105b15714bfec37989ed5c5b6e60f572253019` (MIT license). The tmux status line shows `YYYY-MM-DD HH:MM`.
-
-## Other configurations
-
-The VS Code OSS settings use `nvim` from `PATH`, so install Neovim first. If a macOS GUI launch does not inherit the Homebrew path, set `vim.neovimPath` in that machine's VS Code user settings to the output of `command -v nvim`. On macOS, VS Code uses a different settings directory; copy or link this file there if you use VS Code OSS. The aria2 configuration stores downloads in `~/Downloads`, does not force a proxy, and binds RPC to localhost. Create `~/Downloads` and `~/.config/aria2/aria2.session` before starting aria2 directly; the Arch systemd user service creates the session file for you. Use a machine-local aria2 configuration if you need remote RPC access or a proxy.
-
-The `systemd`, `hyprland`, `mangohud`, and Steam packages are Arch/Linux-specific and should not be Stowed on macOS.
-The Linux volume shortcuts use `pactl` or `wpctl`; the optional volume menu also needs `wofi`, `rofi`, or `fuzzel`.
+The remaining desktop and DWM-era scripts are optional Linux packages. Review their external command dependencies before using them on a new machine.

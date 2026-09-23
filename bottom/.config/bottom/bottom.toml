@@ -1,0 +1,9 @@
+[flags]
+rate = "1s"
+default_time_value = "1m"
+
+[processes]
+process_command = true
+
+[styles]
+theme = "nord"

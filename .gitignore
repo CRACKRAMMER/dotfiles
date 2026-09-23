@@ -3,3 +3,12 @@
 nvim/.config/nvim/lua/local.lua
 tmux/.config/tmux/local.conf
 zsh/.config/zsh/local.zsh
+yazi/.config/yazi/bookmark
+# Sunshine keeps pairing credentials and runtime state beside its config.
+sunshine/.config/sunshine/credentials/
+sunshine/.config/sunshine/sunshine_state.json
+sunshine/.config/sunshine/*.log*
+sunshine/.config/sunshine/*.bak
+# VLC's UI state records recently opened local media.
+vlc/.config/vlc/vlc-qt-interface.conf
+vlc/.config/vlc/ml.xspf
