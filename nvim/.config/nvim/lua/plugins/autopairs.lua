@@ -4,11 +4,7 @@ if not npairs_ok then
 end
 
 npairs.setup {
-  check_ts = true,
-  ts_config = {
-    lua = { "string", "source" },
-    javascript = { "string", "template_string" },
-  },
+  check_ts = false,
   fast_wrap = {
     map = '<M-e>',
     chars = { '{', '[', '(', '"', "'" },

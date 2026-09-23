@@ -1,3 +1,8 @@
+# Start tmux before loading prompt and plugins. The tmux child shell loads them once.
+if [[ -o interactive && -z ${TMUX:-} && -z ${DOTFILES_NO_TMUX:-} ]] && { [[ -t 0 ]] || [[ -t 1 ]]; } && command -v tmux >/dev/null 2>&1; then
+  exec tmux
+fi
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
@@ -8,7 +13,18 @@ fi
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 # Path to your oh-my-zsh installation.
-export ZSH="/home/xiechengan/.oh-my-zsh"
+if [[ -z ${ZSH:-} ]]; then
+  if [[ -r "$HOME/.oh-my-zsh/oh-my-zsh.sh" ]]; then
+    ZSH="$HOME/.oh-my-zsh"
+  elif [[ -r /usr/share/oh-my-zsh/oh-my-zsh.sh ]]; then
+    ZSH=/usr/share/oh-my-zsh
+  else
+    ZSH="$HOME/.oh-my-zsh"
+  fi
+fi
+export ZSH
+ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/oh-my-zsh"
+mkdir -p "$ZSH_CACHE_DIR"
 
 # export GOPROXY="https://goproxy.cn,direct"
 # export GOROOT="/usr/lib/go"
@@ -20,7 +36,18 @@ export ZSH="/home/xiechengan/.oh-my-zsh"
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 # ZSH_THEME="robbyrussell"
 # ZSH_THEME="avit"
-ZSH_THEME="ys"
+p10k_theme=''
+for theme_file in /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme /usr/local/share/powerlevel10k/powerlevel10k.zsh-theme; do
+  if [[ -r "$theme_file" ]]; then
+    p10k_theme=$theme_file
+    break
+  fi
+done
+if [[ -n $p10k_theme ]]; then
+  ZSH_THEME=''
+else
+  ZSH_THEME=ys
+fi
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -81,8 +108,41 @@ ZSH_THEME="ys"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git)
+if (( $+commands[fzf] )) && [[ -r "$ZSH/plugins/fzf/fzf.plugin.zsh" ]]; then
+  plugins+=(fzf)
+fi
 
-source $ZSH/oh-my-zsh.sh
+if [[ -r "$ZSH/oh-my-zsh.sh" ]]; then
+  source "$ZSH/oh-my-zsh.sh"
+else
+  autoload -Uz compinit
+  compinit -d "${ZSH_COMPDUMP:-$HOME/.zcompdump}"
+fi
+
+# Homebrew can provide fzf without Oh My Zsh. Load its shell integration once.
+if (( $+commands[fzf] )) && (( ${plugins[(Ie)fzf]} == 0 )); then
+  if fzf_shell_setup=$(fzf --zsh 2>/dev/null); then
+    eval "$fzf_shell_setup"
+  else
+    for fzf_shell_dir in /usr/share/fzf /opt/homebrew/opt/fzf/shell /usr/local/opt/fzf/shell; do
+      if [[ -r "$fzf_shell_dir/key-bindings.zsh" ]]; then
+        [[ -r "$fzf_shell_dir/completion.zsh" ]] && source "$fzf_shell_dir/completion.zsh"
+        source "$fzf_shell_dir/key-bindings.zsh"
+        break
+      fi
+    done
+  fi
+  unset fzf_shell_setup fzf_shell_dir
+fi
+
+# fzf-tab replaces the completion menu, so load it after compinit and fzf.
+fzf_tab_plugin="${ZDOTDIR:-$HOME}/.config/zsh/fzf-tab/fzf-tab.plugin.zsh"
+if (( $+commands[fzf] )) && [[ -r "$fzf_tab_plugin" ]]; then
+  zstyle ':completion:*' menu no
+  zstyle ':completion:*:descriptions' format '[%d]'
+  source "$fzf_tab_plugin"
+fi
+unset fzf_tab_plugin
 
 # User configuration
 
@@ -109,34 +169,36 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
-source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
-[[ -s /etc/profile.d/autojump.zsh ]] && source /etc/profile.d/autojump.zsh
-
+for plugin_dir in /usr/share/zsh/plugins /opt/homebrew/share /usr/local/share; do
+  if [[ -r "$plugin_dir/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+    source "$plugin_dir/zsh-autosuggestions/zsh-autosuggestions.zsh"
+    break
+  fi
+done
+[[ -n $p10k_theme ]] && source "$p10k_theme"
 alias vi="nvim"
-alias xvlc="vlc -V x11"
-alias neofetch="neofetch | lolcat"
-alias docker="podman"
-alias wine="env LANG=zh_CN.UTF-8 wine"
+[[ $OSTYPE == linux* ]] && command -v vlc >/dev/null 2>&1 && alias xvlc="vlc -V x11"
+command -v fastfetch >/dev/null 2>&1 && alias fetch="fastfetch"
+if ! command -v docker >/dev/null 2>&1 && command -v podman >/dev/null 2>&1; then
+  alias docker="podman"
+fi
+[[ $OSTYPE == linux* ]] && command -v wine >/dev/null 2>&1 && alias wine="env LANG=zh_CN.UTF-8 wine"
 
 proxy () {
-  export http_proxy=http://127.0.0.1:8889
+  local protocol=${1:-http}
+  local endpoint=${2:-127.0.0.1:8888}
+  [[ $protocol == socks ]] && protocol=socks5
+  export http_proxy="$protocol://$endpoint"
   export https_proxy=$http_proxy
-  if [[ $1 = "socks" ]]
-  then
-    export all_proxy=socks5://127.0.0.1:1080
-  else
-    export all_proxy=$http_proxy
-  fi
-  echo "HTTP Proxy on"
+  export all_proxy=$http_proxy
+  print -r -- "Proxy on: $all_proxy"
 }
 
 noproxy () {
   unset http_proxy
   unset https_proxy
   unset all_proxy
-  echo "HTTP Proxy off"
+  print -r -- "Proxy off"
 }
 
 lang () {
@@ -150,20 +212,63 @@ lang () {
 }
 
 switchGPU () {
-    if test -z $DRI_PRIME -o $DRI_PRIME -eq 0 
-    then
+    if [[ $OSTYPE != linux* ]]; then
+        print -u2 'switchGPU is available on Linux only'
+        return 1
+    fi
+    if [[ -z ${DRI_PRIME:-} || ${DRI_PRIME:-0} == 0 ]]; then
         export DRI_PRIME=1
-        export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.i686.json:/usr/share/vulkan/icd.d/radeon_icd.x86_64.json
     else
         unset DRI_PRIME
-        unset VK_ICD_FILENAMES
     fi
-    echo -n 'GPU:'
-    glxinfo | grep "OpenGL renderer" | cut -d':' -f2
+    if command -v glxinfo >/dev/null 2>&1; then
+        glxinfo | grep "OpenGL renderer" | cut -d':' -f2
+    fi
 }
 
 [[ $- != *i* ]] && return
-[[ -z "$TMUX" ]] && exec tmux
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# Keep machine-specific software and credentials out of the shared config.
+local_zsh_config="${ZDOTDIR:-$HOME}/.config/zsh/local.zsh"
+[[ -r "$local_zsh_config" ]] && source "$local_zsh_config"
+unset local_zsh_config
+
+# AUR installs Anaconda in /opt; Homebrew's cask uses its prefix/anaconda3.
+# Skip initialization when another profile has already configured conda.
+if (( ! $+functions[conda] )); then
+  case $OSTYPE in
+    darwin*) conda_roots=(/opt/homebrew/anaconda3 /usr/local/anaconda3) ;;
+    linux*) conda_roots=(/opt/anaconda) ;;
+    *) conda_roots=() ;;
+  esac
+
+  for conda_root in "${conda_roots[@]}"; do
+    [[ -x "$conda_root/bin/conda" ]] || continue
+    conda_hook=$("$conda_root/bin/conda" shell.zsh hook 2>/dev/null) || conda_hook=''
+    if [[ -n $conda_hook ]]; then
+      eval "$conda_hook"
+    elif [[ -r "$conda_root/etc/profile.d/conda.sh" ]]; then
+      source "$conda_root/etc/profile.d/conda.sh"
+    fi
+    break
+  done
+  unset conda_root conda_roots conda_hook
+fi
+
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh)"
+elif [[ -s /etc/profile.d/autojump.zsh ]]; then
+  source /etc/profile.d/autojump.zsh
+fi
+
+# Syntax highlighting wraps ZLE widgets, so load it after all other plugins.
+for plugin_dir in /usr/share/zsh/plugins /opt/homebrew/share /usr/local/share; do
+  if [[ -r "$plugin_dir/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
+    source "$plugin_dir/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+    break
+  fi
+done
+unset plugin_dir theme_file p10k_theme

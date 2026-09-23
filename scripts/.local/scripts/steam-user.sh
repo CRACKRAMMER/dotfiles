@@ -1,6 +1,6 @@
 #! /bin/bash
 
-users_dir='/home/xiechengan/Games/SteamUser'
+users_dir="$HOME/Games/SteamUser"
 before_operation='pacmd set-default-sink 1; pamixer --set-volume 40;'
 
 
@@ -16,7 +16,7 @@ while getopts ":c:s:" opt; do
         exit
         ;;
     c)
-        $before_operation=$OPTARG
+        before_operation=$OPTARG
         ;;
     \?)
         echo "Invalid option: -$OPTARG"

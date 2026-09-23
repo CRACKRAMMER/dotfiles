@@ -1,6 +1,5 @@
 local wezterm = require("wezterm")
 return {
-    -- color_scheme = "OneHalfDark",
     font = wezterm.font("FiraCode Nerd Font"),
     font_size = 18,
     hide_tab_bar_if_only_one_tab = true,
@@ -11,37 +10,37 @@ return {
         top = 4,
         bottom = 4,
     },
-    -- modified colors from OneHalfDark
+    -- Tokyo Night Moon, matching Neovim and tmux.
     colors = {
-        foreground = '#dcdfe4',
-        background = '#282c34',
+        foreground = '#c8d3f5',
+        background = '#222436',
 
-        cursor_bg = '#51afef',
-        cursor_fg = 'black',
-        cursor_border = '#a3b3cc',
+        cursor_bg = '#82aaff',
+        cursor_fg = '#1e2030',
+        cursor_border = '#82aaff',
 
-        selection_fg = '#dcdfe4',
-        selection_bg = '#474e5d',
+        selection_fg = '#c8d3f5',
+        selection_bg = '#3b4261',
 
         ansi = {
-            '#282c34',
-            '#e06c75',
-            '#98c379',
-            '#e5c07b',
-            '#61afef',
-            '#c678dd',
-            '#56b6c2',
-            '#dcdfe4',
+            '#1e2030',
+            '#ff757f',
+            '#c3e88d',
+            '#ffc777',
+            '#82aaff',
+            '#fca7ea',
+            '#86e1fc',
+            '#c8d3f5',
         },
         brights = {
-            '#595e68',
-            '#e06c75',
-            '#98c379',
-            '#e5c07b',
-            '#61afef',
-            '#c678dd',
-            '#56b6c2',
-            '#dcdfe4',
+            '#636da6',
+            '#ff8d94',
+            '#c7fb6d',
+            '#ffd8ab',
+            '#9ab8ff',
+            '#caabff',
+            '#b2ebff',
+            '#ffffff',
         },
     },
 }

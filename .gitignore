@@ -1,3 +1,5 @@
-lazy-lock.json
 *.log
 *.session
+nvim/.config/nvim/lua/local.lua
+tmux/.config/tmux/local.conf
+zsh/.config/zsh/local.zsh

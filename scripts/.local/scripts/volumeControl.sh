@@ -1,52 +1,86 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-file_name=`basename $0 | cut -d'.' -f1`
-volume=$(pamixer --get-volume)
 step=5
 
-case "$XDG_SESSION_TYPE" in 
-    "wayland")
-        switch_driver="wofi -W 500 -H 500 -d -n -i --prompt $file_name"
-        ;;
-    "x11")
-        switch_driver="rofi -dmenu -p $file_name"
-        ;;
-esac
+if command -v pactl >/dev/null 2>&1; then
+    audio_backend=pactl
+elif command -v wpctl >/dev/null 2>&1; then
+    audio_backend=wpctl
+else
+    printf 'Volume control requires pactl or wpctl.\n' >&2
+    exit 1
+fi
 
-case "$1" in
-    "up")
-        value=$[volume-volume%step+step]
-        [[ $value -ge 100 ]] && pamixer --set-volume 100 || pamixer --set-volume $value
+get_volume() {
+    if [[ $audio_backend == pactl ]]; then
+        pactl get-sink-volume @DEFAULT_SINK@ | awk 'match($0, /[0-9]+%/) { print substr($0, RSTART, RLENGTH - 1); exit }'
+    else
+        wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{ printf "%.0f\n", $2 * 100 }'
+    fi
+}
+
+set_volume() {
+    if [[ $audio_backend == pactl ]]; then
+        pactl set-sink-volume @DEFAULT_SINK@ "$1%"
+    else
+        wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ "$1%"
+    fi
+}
+
+choose() {
+    if command -v wofi >/dev/null 2>&1; then
+        wofi --dmenu --prompt volume
+    elif command -v rofi >/dev/null 2>&1; then
+        rofi -dmenu -p volume
+    elif command -v fuzzel >/dev/null 2>&1; then
+        fuzzel --dmenu --prompt 'volume> '
+    else
+        printf 'Volume menu requires wofi, rofi, or fuzzel.\n' >&2
+        return 1
+    fi
+}
+
+case ${1:-menu} in
+    up)
+        current=$(get_volume)
+        next=$(( (current / step + 1) * step ))
+        (( next > 100 )) && next=100
+        set_volume "$next"
         ;;
-    "down")
-        value=$[volume-volume%step-!(volume%step)*step]
-        [[ $value -le $step ]] && pamixer --set-volume $step || pamixer --set-volume $value
+    down)
+        current=$(get_volume)
+        next=$(( current % step == 0 ? current - step : current - current % step ))
+        (( next < 0 )) && next=0
+        set_volume "$next"
         ;;
-    "toggle")
-        pamixer -t
+    toggle)
+        if [[ $audio_backend == pactl ]]; then
+            pactl set-sink-mute @DEFAULT_SINK@ toggle
+        else
+            wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+        fi
+        ;;
+    menu)
+        action=$(printf 'switch\nvolume\n' | choose) || exit 1
+        case $action in
+            switch)
+                [[ $audio_backend == pactl ]] || { printf 'Sink switching requires pactl.\n' >&2; exit 1; }
+                sink=$(pactl list short sinks | awk '{ print $2 }' | choose) || exit 1
+                [[ -n $sink ]] && pactl set-default-sink "$sink"
+                ;;
+            volume)
+                value=$(seq 0 "$step" 100 | choose) || exit 1
+                [[ -n $value ]] && set_volume "$value"
+                ;;
+        esac
         ;;
     *)
-        comm=$(printf "switch\nvolume\n" | eval $switch_driver)
-        if test -n "$comm"
-        then
-            case "$comm" in
-                "switch")
-                    sink_list=$(pactl list sinks | grep -e "Name" -e "Description" | cut -d':' -f2-)
-                    sink=$(printf "$sink_list" | sed -n 'n;p' | eval $switch_driver)
-                    if test -n "$sink"
-                    then
-                        pactl set-default-sink $(printf "$sink_list" | grep -B1 "$sink" | head -n1)
-                        notify-send -- "sink: $sink"
-                    fi
-                    ;;
-                "volume")
-                    value=`seq 0 $step 100 | xargs -I{} printf '{}%%\n' | eval $switch_driver | cut -d'%' -f1`
-                    [[ -n $value ]] && pamixer --set-volume $value
-                    ;;
-            esac
-        else
-            exit 1
-        fi
+        printf 'Usage: %s [up|down|toggle|menu]\n' "$0" >&2
+        exit 2
+        ;;
 esac
 
-notify-send -- "volume $(pamixer --get-volume)"
+if command -v notify-send >/dev/null 2>&1; then
+    notify-send -- "Volume: $(get_volume)%" || true
+fi

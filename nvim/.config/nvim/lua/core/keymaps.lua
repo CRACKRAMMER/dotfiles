@@ -35,8 +35,8 @@ keymap.set("n", "<leader>nh", ":nohl<CR>")
 
 keymap.set("n", "<C-Q>", ":bdelete<CR>")
 keymap.set("n", "<leader>o", ":let currentbuf=bufnr()|bufdo if currentbuf != bufnr()|bd|endif<Return>", {silent = true})
-keymap.set("n", "<C-L>", ":bnext<CR>")
-keymap.set("n", "<C-H>", ":bprevious<CR>")
+keymap.set("n", "<leader>bn", ":bnext<CR>")
+keymap.set("n", "<leader>bp", ":bprevious<CR>")
 
 keymap.set("n", "<leader>e", ":NvimTreeToggle<CR>")
 keymap.set("n","<leader>l", ":TlistToggle<CR>")

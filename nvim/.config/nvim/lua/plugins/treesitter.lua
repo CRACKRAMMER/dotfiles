@@ -1,18 +1,23 @@
-require'nvim-treesitter.configs'.setup {
-  -- 添加不同语言
-  -- ensure_installed = { "vim", "vimdoc", "bash", "c", "cpp", "javascript", "json", "lua", "python", "typescript", "tsx", "css", "rust", "markdown", "markdown_inline" }, -- one of "all" or a list of languages
-  ensure_installed = { "c", "cpp", "javascript", "json", "lua", "python", "typescript", "tsx", "css", "rust", "markdown", "markdown_inline" },
+local treesitter = require("nvim-treesitter")
 
-  highlight = { enable = true },
-  indent = { enable = true },
-
-  autotag={
-    enable = true,
-    filetypes = { "html", "xml", "php", "vue", "tsx" },
-  },
-  rainbow = {
-    enable = true,
-    extended_mode = true,
-    max_file_lines = nil,
-  }
+local parsers = {
+  "bash", "c", "cpp", "css", "html", "javascript", "json", "lua",
+  "markdown", "markdown_inline", "python", "rust", "tsx", "typescript",
+  "vim", "vimdoc",
 }
+
+-- Run this after installing the CLI on a new machine. Parser installation is
+-- explicit so opening Neovim offline does not start network downloads.
+vim.api.nvim_create_user_command("DotfilesTSInstall", function()
+  treesitter.install(parsers)
+end, {})
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = {
+    "sh", "c", "cpp", "css", "html", "javascript", "json", "lua",
+    "markdown", "python", "rust", "typescript", "typescriptreact", "vim", "vimdoc",
+  },
+  callback = function(event)
+    pcall(vim.treesitter.start, event.buf)
+  end,
+})

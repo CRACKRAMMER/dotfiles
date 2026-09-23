@@ -1,7 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-brew install neofetch jesseduffield/lazygit/lazygit git-delta the_silver_searcher ccat ripgrep fzf ncdu tldr neovim fd yarn shellcheck loc rainbarf git-flow
-sudo chgrp -R sudo $(brew --prefix)/*; sudo chmod -R g+w $(brew --prefix)/*
-yarn global add diagnostic-languageserver
-#flutter pub global activate dart_style
+if ! command -v brew >/dev/null 2>&1; then
+    printf 'Homebrew is required: https://brew.sh/\n' >&2
+    exit 1
+fi
 
+brew install git stow zsh neovim tmux ripgrep fzf tree-sitter-cli node fd zoxide fastfetch zsh-autosuggestions zsh-syntax-highlighting

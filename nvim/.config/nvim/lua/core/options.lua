@@ -1,19 +1,11 @@
 local opt = vim.opt
 
-local indentfiletype = {"typescript", "typescriptreact", "rust", "lua", "json", "css", "scss", "vue"}
-local function setup_typescript_indent()
-  local ft = vim.bo.filetype
-  for _, v in ipairs(indentfiletype)
-    do
-    if ft == v then
-      vim.opt.shiftwidth = 2
-      vim.opt.softtabstop = 2
-      return
-    end
-  end
-end
-vim.api.nvim_create_autocmd("BufRead", {
-  callback = setup_typescript_indent,
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "typescript", "typescriptreact", "rust", "lua", "json", "css", "scss", "vue" },
+  callback = function(event)
+    vim.bo[event.buf].shiftwidth = 2
+    vim.bo[event.buf].softtabstop = 2
+  end,
 })
 
 opt.relativenumber = true
@@ -44,7 +36,13 @@ opt.cursorline = true
 
 opt.mouse:append("a")
 
-opt.clipboard:append("unnamedplus")
+local has_clipboard = vim.uv.os_uname().sysname == "Darwin"
+  or vim.fn.executable("wl-copy") == 1
+  or vim.fn.executable("xclip") == 1
+  or vim.fn.executable("xsel") == 1
+if has_clipboard then
+  opt.clipboard:append("unnamedplus")
+end
 
 opt.splitright = true
 opt.splitbelow = true
@@ -54,3 +52,8 @@ opt.smartcase = true
 
 opt.termguicolors = true
 opt.signcolumn = "yes"
+opt.laststatus = 3
+opt.showmode = false
+opt.winborder = "rounded"
+opt.fillchars = { eob = " " }
+opt.pumheight = 12

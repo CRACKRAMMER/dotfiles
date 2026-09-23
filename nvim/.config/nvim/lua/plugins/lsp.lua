@@ -1,49 +1,16 @@
-require("mason").setup({
-  ui = {
-      icons = {
-          package_installed = "✓",
-          package_pending = "➜",
-          package_uninstalled = "✗"
-      }
-  }
+require("mason").setup()
+
+-- mason-lspconfig v2 enables installed servers; configure shared completion
+-- capabilities before it does so. The servers retain their own root detection.
+vim.lsp.config("*", {
+  capabilities = require("cmp_nvim_lsp").default_capabilities(),
 })
 
+local servers = { "clangd", "lua_ls", "pyright", "emmet_ls", "rust_analyzer" }
 require("mason-lspconfig").setup({
-  ensure_installed = {
-    "clangd",
-    "lua_ls",
-    "pyright",
-    "cssls",
-    "emmet_ls",
-    "html",
-    "rust_analyzer",
-    "tsserver",
-  },
+  ensure_installed = servers,
+  automatic_enable = servers,
 })
-
-local capabilities = require('cmp_nvim_lsp').default_capabilities()
-
-require("mason-lspconfig").setup_handlers {
-    function (server_name) -- default handler (optional)
-      require("lspconfig")[server_name].setup {
-      capabilities = capabilities,
-      root_dir = function(fname)
-        return vim.loop.cwd()
-      end,
-    }
-    end,
-    ["rust_analyzer"] = function ()
-        require("rust-tools").setup {}
-    end,
-}
-
--- require("lspconfig").lua_ls.setup {
---   capabilities = capabilities,
--- }
---
--- require("lspconfig").cssls.setup {
---   capabilities = capabilities,
--- }
 
 vim.keymap.set('n', 'go', vim.diagnostic.open_float)
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)

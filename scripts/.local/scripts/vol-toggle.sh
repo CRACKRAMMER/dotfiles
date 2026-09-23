@@ -1,5 +1,2 @@
-#!/bin/bash
-
-/usr/bin/pamixer -t
-#/usr/bin/amixer set Master toggle
-#dwm-status-refresh.sh
+#!/usr/bin/env bash
+exec "$(dirname -- "$0")/volumeControl.sh" toggle

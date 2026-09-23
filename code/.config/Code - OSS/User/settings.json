@@ -1,5 +1,4 @@
 {
-  "vim.neovimPath": "/usr/bin/nvim",
   "vim.enableNeovim": true,
   "vim.easymotion": true,
   "vim.sneak": true,
@@ -29,7 +28,7 @@
       "commands": ["editor.action.commentLine"]
     },
     {
-      "before": ["<leader", "a", "a"],
+      "before": ["<leader>", "a", "a"],
       "commands": ["editor.action.clipboardCopyAction"]
     },
     {

@@ -1,6 +1,6 @@
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system({
+  local result = vim.fn.system({
     "git",
     "clone",
     "--filter=blob:none",
@@ -8,6 +8,9 @@ if not vim.loop.fs_stat(lazypath) then
     "--branch=stable", -- latest stable release
     lazypath,
   })
+  if vim.v.shell_error ~= 0 then
+    error("lazy.nvim bootstrap failed: " .. result)
+  end
 end
 vim.opt.rtp:prepend(lazypath)
 
@@ -19,13 +22,11 @@ local plugins = {
   "nvim-tree/nvim-web-devicons", -- 文档树图标
 
   "christoomey/vim-tmux-navigator", -- 用ctl-hjkl来定位窗口
-  "nvim-treesitter/nvim-treesitter", -- 语法高亮
+  { "nvim-treesitter/nvim-treesitter", branch = "main", lazy = false, build = ":TSUpdate" },
 
-  {
-    "williamboman/mason.nvim",
-    "williamboman/mason-lspconfig.nvim", -- 这个相当于mason.nvim和lspconfig的桥梁
-    "neovim/nvim-lspconfig"
-  },
+  { "mason-org/mason.nvim", lazy = false },
+  { "neovim/nvim-lspconfig", lazy = false },
+  { "mason-org/mason-lspconfig.nvim", dependencies = { "mason-org/mason.nvim", "neovim/nvim-lspconfig" } },
 
       -- 自动补全
   "hrsh7th/nvim-cmp",
@@ -40,17 +41,18 @@ local plugins = {
 
   "akinsho/bufferline.nvim", -- buffer分割线
   "lewis6991/gitsigns.nvim", -- 左则git提示
-  "h-hg/fcitx.nvim",
+  { "h-hg/fcitx.nvim", cond = function()
+    return vim.fn.executable("fcitx5-remote") == 1 or vim.fn.executable("fcitx-remote") == 1
+  end },
 
   "ap/vim-css-color",
   "yegappan/taglist",
-  'simrat39/rust-tools.nvim',
   'tpope/vim-surround',
   'tpope/vim-repeat',
   {
     "iamcco/markdown-preview.nvim",
     cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
-    build = "cd app && yarn install",
+    build = "cd app && npm install",
     init = function()
       vim.g.mkdp_filetypes = { "markdown" }
     end,
@@ -58,8 +60,8 @@ local plugins = {
   },
 
   {
-    'nvim-telescope/telescope.nvim', tag = '0.1.5', -- 文件检索
-    dependencies = { {'nvim-lua/plenary.nvim'} } -- requires要改为dependencies
+    'nvim-telescope/telescope.nvim', -- tag = '0.1.5', -- 文件检索
+    dependencies = { 'nvim-lua/plenary.nvim' }
   },
   -- Lua
   {
@@ -72,6 +74,4 @@ local plugins = {
   },
 
 }
-local opts = {} -- 注意要定义这个变量
-
-require("lazy").setup(plugins, opts)
+require("lazy").setup(plugins, { rocks = { enabled = false } })
