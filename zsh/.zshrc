@@ -136,7 +136,7 @@ if (( $+commands[fzf] )) && (( ${plugins[(Ie)fzf]} == 0 )); then
 fi
 
 # fzf-tab replaces the completion menu, so load it after compinit and fzf.
-fzf_tab_plugin="${ZDOTDIR:-$HOME}/.config/zsh/fzf-tab/fzf-tab.plugin.zsh"
+fzf_tab_plugin="${XDG_CONFIG_HOME:-$HOME/.config}/zsh/fzf-tab/fzf-tab.plugin.zsh"
 if (( $+commands[fzf] )) && [[ -r "$fzf_tab_plugin" ]]; then
   zstyle ':completion:*' menu no
   zstyle ':completion:*:descriptions' format '[%d]'
@@ -232,7 +232,7 @@ switchGPU () {
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # Keep machine-specific software and credentials out of the shared config.
-local_zsh_config="${ZDOTDIR:-$HOME}/.config/zsh/local.zsh"
+local_zsh_config="${XDG_CONFIG_HOME:-$HOME/.config}/zsh/local.zsh"
 [[ -r "$local_zsh_config" ]] && source "$local_zsh_config"
 unset local_zsh_config
 
@@ -275,3 +275,6 @@ unset plugin_dir theme_file p10k_theme
 
 # Let Kitty distinguish an idle tmux prompt from a running command.
 [[ -r "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/tmux-kitty-idle.zsh" ]] && source "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/tmux-kitty-idle.zsh"
+
+# Interactive reboot command; merely loading this file never changes EFI state.
+[[ -r "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/boot-windows.zsh" ]] && source "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/boot-windows.zsh"
