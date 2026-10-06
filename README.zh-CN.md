@@ -4,6 +4,33 @@
 
 这是一套用于 Arch Linux 和 macOS 的个人配置，由 [GNU Stow](https://www.gnu.org/software/stow/) 管理。每个顶层目录是一个独立的 Stow 包，只需链接当前机器使用的应用。
 
+## 多台电脑同步
+
+所有电脑统一使用 `master`，共用配置和插件锁定版本。`hr` 的历史已合并到 `master`，同名配置采用 GitHub 上的版本；后续修改共用配置也提交到 `master`，不再按电脑维护不同分支。
+
+新电脑先克隆，再按下面的安装步骤链接需要的包：
+
+```sh
+git clone --branch master https://github.com/CRACKRAMMER/dotfiles.git ~/.dotfiles
+```
+
+已有电脑先备份未提交修改和未跟踪文件，再更新：
+
+```sh
+cd ~/.dotfiles
+git fetch origin
+git switch master
+git pull --ff-only origin master
+```
+
+更新后重新执行所用包的 Stow 预览和链接命令，运行 `ya pkg install`，并在 Neovim 中执行 `:Lazy restore`，让插件使用仓库锁定的版本。新开终端加载 Zsh 配置；Kitty 的 watcher 需要重开 Kitty。磁盘 UUID、服务启用状态和私密信息保留在本机文件中，共用配置保持一致。
+
+`clean-copy.nvim` 是私有仓库，每台电脑需要可访问它的 GitHub 认证。如果已经配置好 GitHub SSH 访问，可让该插件的 HTTPS 地址使用 SSH：
+
+```sh
+git config --global url."git@github.com:CRACKRAMMER/clean-copy.nvim.git".insteadOf https://github.com/CRACKRAMMER/clean-copy.nvim.git
+```
+
 ## 安装
 
 将仓库克隆到 `~/.dotfiles`，安装 Stow 和需要的应用。终端通用工具可这样安装：
@@ -33,7 +60,7 @@ stow -n -v --no-folding -t "$HOME" sunshine vlc mpv
 stow -v --no-folding -t "$HOME" sunshine vlc mpv
 ```
 
-仓库中的 Sunshine 配置针对当前 Arch/KWin 主机。在 macOS 上使用前，应根据机器调整 `capture` 和 `encoder`。已有 Sunshine 安装通常存在 `sunshine.conf` 与 `apps.json` 普通文件，链接前先备份。`sunshine_state.json`、`credentials/` 必须留在本机，不要提交配对状态、私钥、日志、备份或 VLC 最近播放记录。只有确实需要时，才在本机设置 `csrf_allowed_origins`。
+仓库中的 Sunshine 配置针对 Linux + Plasma（Wayland），使用 KWin 捕获和 VAAPI 编码，只同步 `sunshine.conf`。`apps.json` 是每台电脑自己的应用列表，由 Sunshine 在本机维护并由 Git 忽略。已有 Sunshine 安装通常存在 `sunshine.conf` 普通文件，链接前先备份。`sunshine_state.json`、`credentials/` 也必须留在本机，不要提交配对状态、私钥、日志、备份或 VLC 最近播放记录。只有确实需要时，才在本机设置 `csrf_allowed_origins`。
 
 部分图形程序在不同平台使用不同目录。Lazygit 可以读取 `$XDG_CONFIG_HOME/lazygit/config.yml`，macOS 的默认回退位置是 `~/Library/Application Support/lazygit/config.yml`。macOS 上 VLC 的首选项路径也不同；链接前先确认应用实际读取的位置。
 
@@ -58,9 +85,25 @@ stow -v --no-folding -t "$HOME" sunshine vlc mpv
 | `mpv` | Arch、macOS | 记住播放位置，模糊匹配字幕；硬件解码使用 mpv 默认值。 |
 | `zed` | Arch、macOS | 跟随系统明暗主题，失焦自动保存，保存时格式化。 |
 | `vlc` | 主要用于 Arch | 仅保留少量隐私设置，不收录自动生成的播放记录及界面状态。 |
-| `sunshine` | Arch/KWin 配置 | 保留桌面和 Steam Big Picture 项；移除了绑定 `HDMI-1`/`xrandr` 的分辨率切换。 |
+| `sunshine` | Linux + Plasma（Wayland） | 只同步 `sunshine.conf`，使用 KWin 捕获和 VAAPI 编码；应用列表、配对数据和用户服务覆盖文件留在本机。 |
 
 其余桌面配置和 DWM 时代的脚本为可选 Linux 包，迁移到新机器前请检查依赖的外部命令。`steam-switch.sh` 会验证账号文件，拒绝替换普通文件或目录，链接更新失败时回滚已更改的链接。壁纸脚本按原样处理文件名，仅管理自身启动的控制器和播放器，依赖 Linux util-linux（`flock`、`setsid`）及对应图形后端；私有状态目录为 `$XDG_RUNTIME_DIR/dotfiles-wallpaper`，未设置运行目录时使用 XDG 缓存目录。
+
+## 可选 Linux 用户服务
+
+`systemd` 包提供 aria2、macast、Ollama 和可选磁盘挂载服务。服务启用链接（`*.wants/`）由各电脑的 `systemctl --user enable` 生成，Git 不跟踪这些链接，克隆仓库不会自动启用服务。
+
+```sh
+stow -n -v -t "$HOME" systemd
+stow -v -t "$HOME" systemd
+systemctl --user daemon-reload
+# 只启用当前电脑需要且已安装的服务，例如：
+systemctl --user enable --now ollama.service
+```
+
+Ollama 默认使用 `~/Disk/OllamaModels`。要使用其他模型目录，将 `~/.config/dotfiles/ollama.env.example` 复制为同目录下的 `ollama.env`，设置 `OLLAMA_MODELS` 为实际绝对路径。这些 `.env` 文件由 Git 忽略；systemd 的 EnvironmentFile 不展开 `$HOME` 或 `~`，参见 [systemd 环境变量说明](https://github.com/systemd/systemd/blob/main/man/systemd.exec.xml)。
+
+`udisksd.service` 是通过 UDisks 挂载本机磁盘的用户服务，区别于系统的 UDisks 守护进程。仅在需要时将 `mount.env.example` 复制为 `mount.env`，用 `lsblk -f` 查到的 UUID 填写 `DOTFILES_MOUNT_DEVICE`，再执行 `systemctl --user enable --now udisksd.service`。没有 `mount.env` 时跳过挂载；Ollama 与挂载服务同时启用时，先执行挂载。`udevadm-monitor.sh` 是可手动运行的可选监控脚本，仅处理新加入且包含文件系统的块设备，需要 `udevadm`、`stdbuf`、`awk` 和 `udisksctl`。
 
 ## 验证
 

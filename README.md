@@ -4,6 +4,33 @@
 
 Personal configuration for Arch Linux and macOS, managed with [GNU Stow](https://www.gnu.org/software/stow/). Each top-level directory is a Stow package. Install only the packages for applications you use.
 
+## Sync across computers
+
+Use `master` on every computer for the shared configuration and pinned plugins. The `hr` history has been merged into `master`, with the GitHub version taking precedence for overlapping configuration. Make future shared changes on `master` rather than keeping separate branches for each computer.
+
+On a new computer, clone the repository, then link the packages you use as described below:
+
+```sh
+git clone --branch master https://github.com/CRACKRAMMER/dotfiles.git ~/.dotfiles
+```
+
+On an existing computer, back up uncommitted changes and untracked files before updating:
+
+```sh
+cd ~/.dotfiles
+git fetch origin
+git switch master
+git pull --ff-only origin master
+```
+
+After updating, repeat the Stow preview and link commands for your packages, run `ya pkg install`, and run `:Lazy restore` in Neovim to use the pinned plugin versions. Open a new terminal for Zsh changes and reopen Kitty for its watcher. Keep disk UUIDs, service enablement and credentials in local files while sharing the configuration itself.
+
+`clean-copy.nvim` is private, so each computer needs GitHub authentication with access to it. If GitHub SSH access is already configured, route that plugin's HTTPS URL through SSH:
+
+```sh
+git config --global url."git@github.com:CRACKRAMMER/clean-copy.nvim.git".insteadOf https://github.com/CRACKRAMMER/clean-copy.nvim.git
+```
+
 ## Install
 
 Clone this repository into `~/.dotfiles`. Install Stow and the applications you want to configure. For the shared terminal setup:
@@ -33,7 +60,7 @@ stow -n -v --no-folding -t "$HOME" sunshine vlc mpv
 stow -v --no-folding -t "$HOME" sunshine vlc mpv
 ```
 
-The checked-in Sunshine config is for this Arch/KWin host. On macOS, adapt `capture` and `encoder` to the host before using it. A running Sunshine installation already has regular `sunshine.conf` and `apps.json` files; back them up before linking, and keep `sunshine_state.json` and `credentials/` in the host's configuration directory. Never commit pairing state, private keys, logs, backups, or VLC's recent-media UI state. `csrf_allowed_origins` should only be set locally if a particular host needs it.
+The checked-in Sunshine config targets Linux + Plasma on Wayland using KWin capture and VAAPI encoding. Only `sunshine.conf` is shared. Each computer maintains its own application list in `apps.json`, which Git ignores. Back up an existing regular `sunshine.conf` before linking; keep `apps.json`, `sunshine_state.json` and `credentials/` in the host's configuration directory. Never commit pairing state, private keys, logs, backups, or VLC's recent-media UI state. `csrf_allowed_origins` should only be set locally if a particular host needs it.
 
 Some GUI applications use platform-specific configuration locations. Lazygit can use `$XDG_CONFIG_HOME/lazygit/config.yml`; its macOS fallback is `~/Library/Application Support/lazygit/config.yml`. VLC uses a different preferences location on macOS. Check the application's actual config path before linking its Stow package there.
 
@@ -58,9 +85,25 @@ Some GUI applications use platform-specific configuration locations. Lazygit can
 | `mpv` | Arch, macOS | Saves playback position; fuzzy subtitle matching. Hardware decoding stays at mpv's default. |
 | `zed` | Arch, macOS | System light/dark theme, autosave on focus change, format on save. |
 | `vlc` | Primarily Arch | Minimal privacy settings; no generated playback history or UI state. |
-| `sunshine` | Arch/KWin profile | Desktop and Steam Big Picture apps. The fixed `HDMI-1`/`xrandr` mode switch was removed because it is host-specific. |
+| `sunshine` | Linux + Plasma (Wayland) | Shares only `sunshine.conf` using KWin capture and VAAPI encoding. App lists, pairing data and user service overrides remain local. |
 
 The remaining desktop and DWM-era scripts are optional Linux packages. Review their external command dependencies before using them on a new machine. `steam-switch.sh` validates account files and refuses to replace regular files or directories; a failed link update rolls back the changed links. The wallpaper scripts preserve filenames literally and manage only their own controllers and players. They use Linux util-linux (`flock`, `setsid`), the selected graphical backend, and a private state directory at `$XDG_RUNTIME_DIR/dotfiles-wallpaper` (or the XDG cache directory when no runtime directory is set).
+
+## Optional Linux user services
+
+The `systemd` package provides aria2, macast, Ollama and an optional disk mount service. Each computer generates its own enablement links (`*.wants/`) with `systemctl --user enable`. These links are ignored by Git, so cloning the repository does not enable services.
+
+```sh
+stow -n -v -t "$HOME" systemd
+stow -v -t "$HOME" systemd
+systemctl --user daemon-reload
+# Enable only installed services this computer needs, for example:
+systemctl --user enable --now ollama.service
+```
+
+Ollama defaults to `~/Disk/OllamaModels`. To use another model directory, copy `~/.config/dotfiles/ollama.env.example` to `ollama.env` beside it and set `OLLAMA_MODELS` to the actual absolute path. These `.env` files are ignored by Git. systemd EnvironmentFile values do not expand `$HOME` or `~`; see the [systemd environment documentation](https://github.com/systemd/systemd/blob/main/man/systemd.exec.xml).
+
+`udisksd.service` is a user service that mounts a local disk through UDisks, separate from the system UDisks daemon. When needed, copy `mount.env.example` to `mount.env`, set `DOTFILES_MOUNT_DEVICE` using the UUID from `lsblk -f`, then run `systemctl --user enable --now udisksd.service`. Mounting is skipped without `mount.env`; when both services are enabled, the mount runs before Ollama. The optional `udevadm-monitor.sh` can be run manually to mount newly added block devices containing filesystems. It needs `udevadm`, `stdbuf`, `awk` and `udisksctl`.
 
 ## Verification
 

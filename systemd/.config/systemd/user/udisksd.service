@@ -1,0 +1,13 @@
+[Unit]
+Description=Mount the configured local data disk with UDisks
+ConditionPathExists=%h/.config/dotfiles/mount.env
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/dotfiles/mount.env
+ExecStart=/usr/bin/udisksctl mount --block-device ${DOTFILES_MOUNT_DEVICE} --no-user-interaction
+ExecStop=/usr/bin/udisksctl unmount --block-device ${DOTFILES_MOUNT_DEVICE} --no-user-interaction
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target

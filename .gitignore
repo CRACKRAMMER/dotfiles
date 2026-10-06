@@ -11,6 +11,7 @@ yazi/.config/yazi/bookmark
 # Sunshine keeps pairing credentials and runtime state beside its config.
 sunshine/.config/sunshine/credentials/
 sunshine/.config/sunshine/sunshine_state.json
+sunshine/.config/sunshine/apps.json
 sunshine/.config/sunshine/*.log*
 sunshine/.config/sunshine/*.bak
 # VLC's UI state records recently opened local media.
@@ -18,3 +19,10 @@ vlc/.config/vlc/vlc-qt-interface.conf
 vlc/.config/vlc/ml.xspf
 # Playback positions can include local media paths (notably on macOS).
 mpv/.config/mpv/watch_later/
+# User service enablement and disk/model paths belong to each machine.
+systemd/.config/systemd/user/*.wants/
+systemd/.config/dotfiles/*.env
+# Sunshine unit overrides remain local; share only sunshine.conf.
+systemd/.config/systemd/user/sunshine.service
+# Local snapshots taken before synchronizing shared configuration.
+/.sync-backups/

@@ -1,0 +1,13 @@
+[Unit]
+Description=Ollama model server
+ConditionFileIsExecutable=/usr/bin/ollama
+After=udisksd.service
+
+[Service]
+Type=simple
+Environment="OLLAMA_MODELS=%h/Disk/OllamaModels"
+EnvironmentFile=-%h/.config/dotfiles/ollama.env
+ExecStart=/usr/bin/ollama serve
+
+[Install]
+WantedBy=default.target
