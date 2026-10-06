@@ -2,6 +2,10 @@ vim.g.mapleader = " "
 
 local keymap = vim.keymap
 
+keymap.set("x", "<leader>cy", function()
+  require("clean_copy").copy()
+end, { desc = "复制去掉注释的代码" })
+
 keymap.set("n","<leader>q","<Cmd>q<CR>");
 keymap.set("n","<leader>Q","<Cmd>qall<CR>");
 keymap.set("n","<leader>w","<Cmd>w<CR>");

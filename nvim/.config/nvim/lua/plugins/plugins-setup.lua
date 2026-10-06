@@ -23,6 +23,12 @@ local plugins = {
 
   "christoomey/vim-tmux-navigator", -- 用ctl-hjkl来定位窗口
   { "nvim-treesitter/nvim-treesitter", branch = "main", lazy = false, build = ":TSUpdate" },
+  {
+    "CRACKRAMMER/clean-copy.nvim",
+    main = "clean_copy",
+    cmd = "CleanCopy",
+    opts = {},
+  },
 
   { "mason-org/mason.nvim", lazy = false },
   { "neovim/nvim-lspconfig", lazy = false },
