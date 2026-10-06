@@ -16,3 +16,5 @@ sunshine/.config/sunshine/*.bak
 # VLC's UI state records recently opened local media.
 vlc/.config/vlc/vlc-qt-interface.conf
 vlc/.config/vlc/ml.xspf
+# Playback positions can include local media paths (notably on macOS).
+mpv/.config/mpv/watch_later/
