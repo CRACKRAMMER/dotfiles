@@ -40,6 +40,7 @@ stow -v --no-folding -t "$HOME" sunshine vlc
 ## 终端与编辑器
 
 - **Zsh：** 交互式 Shell 在 tmux 可用时自动进入 tmux；设置 `DOTFILES_NO_TMUX=1` 可关闭。Oh My Zsh 的 fzf 集成提供 `Ctrl-T`、`Ctrl-R`、`Alt-C`；安装了 fzf-tab 后，按 `Tab` 可用 fzf 选择补全候选。`z`、`zi` 使用 zoxide。仅在标准 AUR 或 Homebrew 路径发现 Anaconda 时初始化 Conda。本机设置放在 Git 忽略的 `zsh/.config/zsh/local.zsh`。
+- **Kitty：** 关闭 OS 窗口时，仅在一个标签、一个终端窗口、tmux 服务器只有一个客户端和一个面板，且 Zsh 停在提示符、没有后台任务或复制模式时，跳过 tmux 的关闭确认。其他情况仍要求确认。`tmux_close.py` watcher 配合 Zsh 提示符钩子实现；新配置需要重开 Kitty 才能完整生效。watcher 使用 Kitty 内部关闭处理接口，升级 Kitty 后若接口不兼容，会保留确认行为。诊断日志默认关闭；使用 `DOTFILES_KITTY_TMUX_DEBUG=1 kitty` 启动时，关闭检查写入 `~/.config/kitty/tmux_close.log`，该文件已被 Git 忽略。
 - **tmux：** `Ctrl-h/j/k/l` 切换 tmux 面板；在 Neovim 中，普通模式下 `Ctrl-h/l` 保留为上一个/下一个文件标签，`Ctrl-j/k` 切换上下分屏，`空格 sh/sj/sk/sl` 分别切换到左/下/上/右分屏。`Alt-w` 打开 fzf 面板选择器。复制模式下 `v` 选取、`y` 复制到可用的系统剪贴板。状态栏显示 `YYYY-MM-DD HH:MM`。本机设置放在 `tmux/.config/tmux/local.conf`。`exit-unattached on` 会在最后一个客户端断开或手动 detach 时结束整个服务器，包括后台会话和其中的程序；需要保留这些会话时，在该本机文件中设置 `set -s exit-unattached off`。
 - **Neovim：** 首次启动时 `lazy.nvim` 与 Mason 会下载插件和语言服务器。执行 `:DotfilesTSInstall` 安装 Tree-sitter 解析器，升级后可运行 `:TSUpdate`。`lazy-lock.json` 锁定插件版本。界面使用 Tokyo Night Moon；安装 Nerd Font 可正确显示图标。本机设置放在 `nvim/.config/nvim/lua/local.lua`。
 - **去注释复制：** [clean-copy.nvim](https://github.com/CRACKRAMMER/clean-copy.nvim) 在独立仓库维护，由 `lazy-lock.json` 锁定版本。Visual 模式选择代码后按 `空格 cy`；`:CleanCopy` 处理整个 buffer，`:[range]CleanCopy` 处理指定行。普通 `y` 和源 buffer 保持原样。执行 `:DotfilesTSInstall` 安装已配置的 parser，包含 SQL、C/C++、JS/TS/JSX/TSX、Rust、Go、Python、PHP、C#、HTML、CSS、Java、Vue 和 Lua；混合语言文件还需要对应嵌入语言的 parser。缺少 parser 时会提示，不会在复制时自动安装。系统剪贴板需要 `wl-copy`、`xclip`、`xsel` 或 macOS `pbcopy` 等 provider，本地寄存器仍可使用。默认保留 Python docstring 和已识别的工具指令；SQL 方言和嵌入语言限制见插件仓库文档。
@@ -58,3 +59,7 @@ stow -v --no-folding -t "$HOME" sunshine vlc
 | `sunshine` | Arch/KWin 配置 | 保留桌面和 Steam Big Picture 项；移除了绑定 `HDMI-1`/`xrandr` 的分辨率切换。 |
 
 其余桌面配置和 DWM 时代的脚本为可选 Linux 包，迁移到新机器前请检查依赖的外部命令。
+
+## 验证
+
+执行 `python -B tests/test_terminal_close.py` 验证 Kitty 关闭处理和 Zsh/tmux 提示符状态。集成测试使用独立临时 socket 与 PTY，需要 Linux、tmux 和 Zsh，不操作现有会话。跨平台关闭处理测试仅依赖 Python 标准库。

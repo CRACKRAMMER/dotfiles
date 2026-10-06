@@ -1,5 +1,9 @@
 *.log
 *.session
+# Crash telemetry and Python runtime caches are machine-local.
+.sentry-native/
+__pycache__/
+*.py[cod]
 nvim/.config/nvim/lua/local.lua
 tmux/.config/tmux/local.conf
 zsh/.config/zsh/local.zsh

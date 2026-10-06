@@ -272,3 +272,6 @@ for plugin_dir in /usr/share/zsh/plugins /opt/homebrew/share /usr/local/share; d
   fi
 done
 unset plugin_dir theme_file p10k_theme
+
+# Let Kitty distinguish an idle tmux prompt from a running command.
+[[ -r "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/tmux-kitty-idle.zsh" ]] && source "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/tmux-kitty-idle.zsh"
