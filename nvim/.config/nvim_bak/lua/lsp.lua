@@ -43,7 +43,7 @@ require('lspconfig')['jdtls'].setup{
     cmd = {
         "jdtls",
         "-configuration",
-        "/home/xiechengan/.cache/jdtls/config",
+        vim.fn.stdpath("cache") .. "/jdtls/config",
         "-data",
         vim.fn.getcwd().."/src"
     }

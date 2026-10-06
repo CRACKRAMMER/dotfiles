@@ -1,6 +1,7 @@
 require("core.options")
-require("core.keymaps")
 require("plugins.plugins-setup")
+-- Apply personal mappings after plugins so navigator defaults do not override them.
+require("core.keymaps")
 
 -- 插件
 require("plugins.colors")
