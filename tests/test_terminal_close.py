@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import shlex
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -88,12 +89,70 @@ class CloseHandlerTests(unittest.TestCase):
         self.assertIs(type(boss).confirm_os_window_close, original)
 
 
+class PaneProcessTests(unittest.TestCase):
+    def setUp(self):
+        self.platform = patch.object(WATCHER.sys, "platform", "linux")
+        self.platform.start()
+        self.addCleanup(self.platform.stop)
+        self.shell = dict(state="S", parent=99, group=100, session=100,
+                          foreground_group=100)
+
+    def check(self, extra, helpers="100"):
+        with patch.object(WATCHER, "_linux_processes", return_value={100: self.shell, **extra}):
+            return WATCHER._pane_has_only_prompt_helpers("100", helpers)
+
+    def test_only_current_shells_reported_helper_groups_are_exempt(self):
+        worker = dict(state="S", parent=1, group=200, session=100,
+                      foreground_group=100)
+        self.assertTrue(self.check({201: worker}, "100 200"))
+        self.assertFalse(self.check({201: worker}))
+        self.assertFalse(self.check({201: worker}, "999 200"))
+        self.assertFalse(self.check({201: worker}, "100 100"))
+
+    def test_background_process_and_new_session_descendant_require_confirmation(self):
+        job = dict(state="S", parent=100, group=300, session=100,
+                   foreground_group=100)
+        self.assertFalse(self.check({300: job}))
+        job = dict(job, session=300, foreground_group=-1)
+        self.assertFalse(self.check({300: job}, "100 300"))
+
+    def test_exited_processes_and_unrelated_sessions_do_not_block_closing(self):
+        process = dict(state="Z", parent=100, group=300, session=100,
+                       foreground_group=100)
+        self.assertTrue(self.check({300: process}))
+        process = dict(process, state="S", parent=1, session=300)
+        self.assertTrue(self.check({300: process}))
+
+    def test_unknown_process_state_preserves_confirmation(self):
+        child = SimpleNamespace(child_fd=-1)
+        boss = make_boss(SimpleNamespace(child=child))
+        with patch.object(WATCHER, "_window_processes", side_effect=PermissionError("unreadable")):
+            boss.confirm_os_window_close(1)
+        self.assertEqual(boss.result, "confirm")
+
+    def test_non_linux_pane_state_keeps_confirmation(self):
+        with patch.object(WATCHER.sys, "platform", "darwin"):
+            self.assertFalse(WATCHER._pane_has_only_prompt_helpers("100", "100"))
+
+
 @unittest.skipUnless(
     sys.platform.startswith("linux") and shutil.which("tmux") and shutil.which("zsh"),
     "Linux, tmux and Zsh are required for isolated PTY integration tests",
 )
 class TmuxIntegrationTests(unittest.TestCase):
     def test_prompt_jobs_layout_and_last_client_exit(self):
+        self.check_prompt_jobs_layout_and_last_client_exit()
+
+    @unittest.skipUnless(
+        Path("/usr/share/oh-my-zsh/oh-my-zsh.sh").is_file()
+        and Path("/usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme").is_file()
+        and Path("/usr/share/zsh-theme-powerlevel10k/gitstatus/usrbin/gitstatusd").is_file(),
+        "The system OMZ/P10k packages are required for the full configuration test",
+    )
+    def test_full_zsh_configuration_with_prompt_helpers(self):
+        self.check_prompt_jobs_layout_and_last_client_exit(full_config=True)
+
+    def check_prompt_jobs_layout_and_last_client_exit(self, full_config=False):
         import fcntl
         import pty
         import select
@@ -108,17 +167,40 @@ class TmuxIntegrationTests(unittest.TestCase):
             for filename in ("fzf_panes.tmux", "clipboard.sh", "tmux.conf"):
                 shutil.copy2(ROOT / "tmux/.config/tmux" / filename, tmux_dir / filename)
             hook = ROOT / "zsh/.config/zsh/tmux-kitty-idle.zsh"
-            (home / ".zshrc").write_text("source " + shlex.quote(str(hook)) + "\n")
+            if full_config:
+                zsh_dir = home / ".config/zsh"
+                zsh_dir.mkdir(parents=True)
+                shutil.copy2(hook, zsh_dir / hook.name)
+                shutil.copy2(ROOT / "zsh/.config/zsh/boot-windows.zsh", zsh_dir / "boot-windows.zsh")
+                shutil.copytree(ROOT / "zsh/.config/zsh/fzf-tab", zsh_dir / "fzf-tab")
+                (home / ".zshenv").write_text("source " + shlex.quote(str(ROOT / "zsh/.zshenv")) + "\n")
+                (home / ".zshrc").write_text("source " + shlex.quote(str(ROOT / "zsh/.zshrc")) + "\n")
+                p10k = Path.home() / ".p10k.zsh"
+                if p10k.is_file():
+                    shutil.copy2(p10k, home / ".p10k.zsh")
+                else:
+                    (home / ".p10k.zsh").write_text(
+                        "typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir vcs)\n"
+                        "typeset -g POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status command_execution_time)\n"
+                        "typeset -g POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true\n"
+                    )
+            else:
+                (home / ".zshrc").write_text("source " + shlex.quote(str(hook)) + "\n")
             command = ["tmux", "-S", str(Path(directory) / "socket")]
             env = dict(os.environ, HOME=str(home), ZDOTDIR=str(home),
                        XDG_CONFIG_HOME=str(home / ".config"), TERM="xterm-256color",
-                       DOTFILES_KITTY_TMUX_DEBUG="0")
+                       XDG_CACHE_HOME=str(home / ".cache"),
+                       ZSH_COMPDUMP=str(home / ".zcompdump"), HISTFILE=str(home / ".zsh_history"),
+                       TMPDIR=str(directory), DOTFILES_NO_TMUX="1", DOTFILES_KITTY_TMUX_DEBUG="0")
+            if full_config:
+                env["ZSH"] = "/usr/share/oh-my-zsh"
             env.pop("TMUX", None)
             env.pop("TMUX_PANE", None)
             master = None
             client_pid = None
             second_master = None
             second_pid = None
+            disowned_jobs = set()
 
             def run(*args):
                 return subprocess.run(command + list(args), env=env, capture_output=True,
@@ -153,7 +235,7 @@ class TmuxIntegrationTests(unittest.TestCase):
                 if client_pid == 0:
                     fcntl.ioctl(0, termios.TIOCSWINSZ, struct.pack("HHHH", 24, 80, 0, 0))
                     os.execvpe("tmux", command + ["-f", str(ROOT / "tmux/.config/tmux/tmux.conf"),
-                               "new-session", "-s", "test", "zsh -d -i"], env)
+                               "new-session", "-s", "test", "-c", str(ROOT), "zsh -d -i"], env)
                 os.set_blocking(master, False)
 
                 def cmdline(pid):
@@ -164,6 +246,19 @@ class TmuxIntegrationTests(unittest.TestCase):
                 boss = make_boss(window)
                 idle = lambda: WATCHER._idle_tmux_window(boss, 1)
                 wait_for(idle)
+                if full_config:
+                    helpers = run("show-options", "-pv", "-t", "test", "@kitty_prompt_helper_pgroups")
+                    self.assertGreaterEqual(len(helpers.stdout.split()), 3, "P10k worker and gitstatus groups")
+                    self.assertTrue(idle(), "real Zsh startup with persistent prompt workers")
+                    # Exercise an active OMZ async prompt request as well as
+                    # P10k's persistent workers; neither is a user background job.
+                    enter("function _dotfiles_test_async { sleep 60; }; _omz_register_handler _dotfiles_test_async")
+                    wait_for(lambda: len(run("show-options", "-pv", "-t", "test", "@kitty_prompt_helper_pgroups").stdout.split()) >= 4)
+                    wait_for(idle)
+                    self.assertTrue(idle(), "active OMZ async prompt worker")
+                    enter("_omz_async_functions=(${_omz_async_functions:#_dotfiles_test_async}); "
+                          "kill -TERM -- -${_OMZ_ASYNC_PIDS[_dotfiles_test_async]} 2>/dev/null")
+                    wait_for(idle)
                 boss.confirm_os_window_close(1)
                 self.assertEqual(boss.result, "close", "fresh Zsh prompt")
                 enter("source " + shlex.quote(str(hook)))
@@ -188,12 +283,36 @@ class TmuxIntegrationTests(unittest.TestCase):
                 run("send-keys", "-t", "test", "C-c")
                 wait_for(idle)
 
+                enter("test_value=; vared test_value")
+                wait_for(lambda: run("show-options", "-pv", "-t", "test", "@kitty_idle_shell_pid").stdout.strip() == "0")
+                self.assertFalse(idle(), "ZLE line-init inside vared must not mark a command idle")
+                run("send-keys", "-t", "test", "C-c")
+                wait_for(idle)
+
                 enter("sleep 60 &")
                 wait_for(lambda: run("capture-pane", "-p", "-t", "test").stdout.count("sleep 60 &") > 0)
                 time.sleep(0.15)
                 self.assertFalse(idle(), "background job at prompt")
                 enter("kill %1; wait")
                 wait_for(idle)
+
+                # &! and disown remove jobs from the Zsh table without stopping
+                # their processes. Inspect the real pane, not just jobs -p.
+                for launch in ("sleep 60 &!", "sleep 60 & disown"):
+                    pid_file = home / "disowned-pid"
+                    enter(launch + "; print -r -- $! > " + shlex.quote(str(pid_file)))
+                    wait_for(lambda: pid_file.is_file() and bool(pid_file.read_text().strip()))
+                    job_pid = int(pid_file.read_text())
+                    disowned_jobs.add(job_pid)
+                    wait_for(lambda: run("display-message", "-p", "-t", "test", "#{pane_pid}:#{@kitty_idle_shell_pid}").stdout.strip().split(":")
+                             == [run("display-message", "-p", "-t", "test", "#{pane_pid}").stdout.strip()] * 2)
+                    self.assertTrue((Path("/proc") / str(job_pid)).exists(), "disowned job still runs")
+                    self.assertFalse(idle(), launch)
+                    boss.confirm_os_window_close(1)
+                    self.assertEqual(boss.result, "confirm", launch)
+                    enter("kill " + str(job_pid))
+                    wait_for(idle)
+                    pid_file.unlink()
 
                 run("copy-mode", "-t", "test")
                 self.assertFalse(idle(), "copy mode")
@@ -230,6 +349,11 @@ class TmuxIntegrationTests(unittest.TestCase):
                 master = None
                 wait_for(lambda: run("list-clients").returncode != 0)
             finally:
+                for job_pid in disowned_jobs:
+                    try:
+                        os.kill(job_pid, signal.SIGTERM)
+                    except ProcessLookupError:
+                        pass
                 run("kill-server")
                 if master is not None:
                     os.close(master)

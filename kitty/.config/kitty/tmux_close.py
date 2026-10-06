@@ -30,6 +30,28 @@ def _reject(reason, **details):
     return False
 
 
+def _linux_processes():
+    """Read one process snapshot; unreadable state must not authorize closing."""
+    processes = {}
+    for entry in Path("/proc").iterdir():
+        if not entry.name.isdecimal():
+            continue
+        try:
+            fields = (entry / "stat").read_text().rsplit(")", 1)[1].split()
+        except (FileNotFoundError, ProcessLookupError):
+            # Processes routinely exit between listing /proc and reading stat.
+            continue
+        pid = int(entry.name)
+        processes[pid] = {
+            "state": fields[0],
+            "parent": int(fields[1]),
+            "group": int(fields[2]),
+            "session": int(fields[3]),
+            "foreground_group": int(fields[5]),
+        }
+    return processes
+
+
 def _window_processes(child):
     if not sys.platform.startswith("linux"):
         return child.foreground_processes, child.background_processes
@@ -38,21 +60,61 @@ def _window_processes(child):
     group = os.tcgetpgrp(child.child_fd)
     session = os.getsid(group)
     foreground, background = [], []
-    for entry in Path("/proc").iterdir():
-        if not entry.name.isdecimal():
+    for pid, process in _linux_processes().items():
+        if process["state"] == "Z" or process["session"] != session:
             continue
-        try:
-            fields = (entry / "stat").read_text().rsplit(")", 1)[1].split()
-            if fields[0] == "Z" or int(fields[3]) != session:
-                continue
-            pid = int(entry.name)
-            if int(fields[2]) == group:
-                foreground.append({"pid": pid, "cmdline": child.cmdline_of_pid(pid)})
-            else:
-                background.append(pid)
-        except (OSError, ValueError, IndexError):
-            continue
+        if process["group"] == group:
+            foreground.append({"pid": pid, "cmdline": child.cmdline_of_pid(pid)})
+        else:
+            background.append(pid)
     return foreground, background
+
+
+def _pane_has_only_prompt_helpers(pane_pid, helper_state):
+    # Kitty knows the outer tmux client's processes, not those inside its pane.
+    # jobs -p also misses disowned jobs, so inspect the actual pane session.
+    if not sys.platform.startswith("linux"):
+        return _reject("pane-process-inspection-unavailable")
+    pane_pid = int(pane_pid)
+    fields = helper_state.split()
+    helpers = set()
+    if fields:
+        if fields[0] != str(pane_pid):
+            return _reject("stale-prompt-helper-owner")
+        helpers = {int(value) for value in fields[1:]}
+        if any(group <= 0 or group == pane_pid for group in helpers):
+            return _reject("invalid-prompt-helper-group")
+
+    processes = _linux_processes()
+    pane = processes.get(pane_pid)
+    if pane is None or pane["state"] == "Z":
+        return _reject("missing-pane-shell")
+    if pane["session"] != pane_pid or pane["foreground_group"] != pane_pid:
+        return _reject("pane-shell-is-not-foreground")
+
+    # Follow descendants too, so a directly spawned setsid job cannot evade the
+    # session check. Fully daemonized services no longer belong to the pane.
+    descendants = {pane_pid}
+    pending = set(processes) - descendants
+    while True:
+        children = {pid for pid in pending if processes[pid]["parent"] in descendants}
+        if not children:
+            break
+        descendants.update(children)
+        pending.difference_update(children)
+
+    for pid, process in processes.items():
+        if pid == pane_pid or process["state"] == "Z":
+            continue
+        in_session = process["session"] == pane_pid
+        if not in_session and pid not in descendants:
+            continue
+        # P10k and OMZ report their own worker groups, qualified by shell PID.
+        # Unknown helpers remain protected by the normal confirmation dialog.
+        if in_session and process["group"] in helpers:
+            continue
+        return _reject("pane-has-background-process", pid=pid)
+    return True
 
 
 def _tmux_output(command, *args):
@@ -98,12 +160,14 @@ def _idle_tmux_window(boss, os_window_id):
         # All panes matter: exit-unattached also ends detached sessions.
         panes = _tmux_output(
             command, "list-panes", "-a", "-F",
-            "#{pane_pid}\t#{pane_current_command}\t#{@kitty_idle_shell_pid}\t#{pane_in_mode}",
+            "#{pane_pid}\t#{pane_current_command}\t#{@kitty_idle_shell_pid}\t#{pane_in_mode}\t#{@kitty_prompt_helper_pgroups}",
         )
         if len(panes) != 1:
             return _reject("tmux-pane-count", count=len(panes))
-        pid, shell, idle_pid, in_mode = panes[0].split("\t")
+        pid, shell, idle_pid, in_mode, helper_state = panes[0].split("\t")
         idle = shell == "zsh" and pid == idle_pid and in_mode == "0"
+        if idle:
+            idle = _pane_has_only_prompt_helpers(pid, helper_state)
         _trace("tmux-pane-state", shell=shell, pid=pid, idle_pid=idle_pid, in_mode=in_mode, idle=idle)
         return idle
     except (OSError, ValueError, IndexError, subprocess.TimeoutExpired) as error:
